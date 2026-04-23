@@ -10,17 +10,26 @@ The content is plain markdown with Claude-compatible YAML frontmatter, so it wor
 
 ## Install
 
-### Claude Code (personal)
+### Claude Code (personal) — recommended
 
-Clone and symlink into your `~/.claude/skills/` directory:
+Clone once, then symlink both the skill **and** the slash command so you can invoke `/noctua-unity-sdk` directly (no need to type `/skills` first):
 
 ```sh
 git clone git@github.com:NoctuaLabs/noctua-skills.git ~/src/noctua-skills
-mkdir -p ~/.claude/skills
-ln -s ~/src/noctua-skills/skills/noctua-unity-sdk ~/.claude/skills/noctua-unity-sdk
+
+mkdir -p ~/.claude/skills ~/.claude/commands
+
+# Skill (auto-triggers on Noctua-related prompts)
+ln -s ~/src/noctua-skills/skills/noctua-unity-sdk        ~/.claude/skills/noctua-unity-sdk
+
+# Slash command (invoke directly: /noctua-unity-sdk <your question>)
+ln -s ~/src/noctua-skills/commands/noctua-unity-sdk.md   ~/.claude/commands/noctua-unity-sdk.md
 ```
 
-Restart Claude Code. Run `/skills` to verify `noctua-unity-sdk` appears.
+Restart Claude Code. Usage:
+
+- `/noctua-unity-sdk how do I add an IAP button?` — invokes the skill directly
+- Or just mention "Noctua SDK" in chat — the skill auto-activates via its description triggers
 
 ### Claude Code (per-project)
 
@@ -28,9 +37,12 @@ Inside your Unity game repo:
 
 ```sh
 git submodule add git@github.com:NoctuaLabs/noctua-skills.git .claude/vendor/noctua-skills
-mkdir -p .claude/skills
-ln -s ../vendor/noctua-skills/skills/noctua-unity-sdk .claude/skills/noctua-unity-sdk
+mkdir -p .claude/skills .claude/commands
+ln -s ../vendor/noctua-skills/skills/noctua-unity-sdk      .claude/skills/noctua-unity-sdk
+ln -s ../vendor/noctua-skills/commands/noctua-unity-sdk.md .claude/commands/noctua-unity-sdk.md
 ```
+
+Now every teammate who opens the project in Claude Code gets `/noctua-unity-sdk` automatically.
 
 ### Cursor
 
