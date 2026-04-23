@@ -1,7 +1,7 @@
 ---
 name: noctua-unity-sdk
 description: |
-  Integrate the Noctua Games Unity SDK (v0.109.0, Unity 2021.3+) — UPM installation,
+  Integrate the Noctua Games Unity SDK (v0.109.0, Unity 2022.3.62f2+ LTS) — UPM installation,
   noctuagg.json configuration at Assets/StreamingAssets, Noctua.InitAsync bootstrap,
   Auth / IAP / Event / IAA / Platform / App APIs, Android and iOS build post-processing
   (SKAdNetworks, AndroidManifest, CocoaPods), Noctua Integration Manager, and the
@@ -12,7 +12,7 @@ description: |
 
 # Noctua Unity SDK Integration Skill
 
-You are helping a game developer integrate the **Noctua Games Unity SDK** (`com.noctuagames.sdk`) into a Unity 2021.3+ project targeting Android and/or iOS.
+You are helping a game developer integrate the **Noctua Games Unity SDK** (`com.noctuagames.sdk`) into a **Unity 2022.3.62f2+ (LTS)** project targeting Android and/or iOS.
 
 Every API, config field, and file path in this skill is verified against the SDK source. **Do not invent APIs.** If you need a detail that isn't covered here, say so and ask the user to share the relevant source file rather than guessing.
 

@@ -4,7 +4,7 @@ Noctua SDK is a Unity Package Manager (UPM) git package. No .unitypackage downlo
 
 ## Prerequisites
 
-- **Unity 2021.3+** (specified in `Packages/com.noctuagames.sdk/package.json`)
+- **Unity 2022.3.62f2 or newer** (2022.3 LTS — minimum supported version). Older editors (2021.3, 2022.3.0–2022.3.61) are **not** supported.
 - **Android:** Gradle template + Android Resolver (EDM4U) — SDK pulls in EDM4U automatically.
 - **iOS:** Xcode 15+, CocoaPods. Minimum iOS deployment target **15.0**.
 - Git installed (UPM resolves git packages).

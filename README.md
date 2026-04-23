@@ -4,7 +4,7 @@ AI-agent skills for integrating Noctua Games SDKs. Currently ships one skill:
 
 | Skill | Scope | Version targeted |
 |---|---|---|
-| [`noctua-unity-sdk`](skills/noctua-unity-sdk/SKILL.md) | Noctua Unity SDK integration (install, config, Auth, IAP, Events, IAA, build post-process) | SDK 0.109.0 / Unity 2021.3+ |
+| [`noctua-unity-sdk`](skills/noctua-unity-sdk/SKILL.md) | Noctua Unity SDK integration (install, config, Auth, IAP, Events, IAA, build post-process) | SDK 0.109.0 / Unity 2022.3.62f2+ |
 
 The content is plain markdown with Claude-compatible YAML frontmatter, so it works in Claude Code, Claude.ai, the Claude Agent SDK, **and** other AI agents (Cursor, Codex CLI, Aider, Copilot) via the root [`AGENTS.md`](AGENTS.md) entry point.
 

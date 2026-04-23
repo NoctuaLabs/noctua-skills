@@ -2,7 +2,7 @@
 
 This file briefs any AI coding agent (Cursor, Codex CLI, Aider, Copilot, Claude Code, etc.) on how to help a game developer integrate the **Noctua Unity SDK**.
 
-**SDK version targeted:** 0.109.0 · **Unity:** 2021.3+ · **Platforms:** Android, iOS
+**SDK version targeted:** 0.109.0 · **Unity:** 2022.3.62f2+ (LTS) · **Platforms:** Android, iOS
 
 ## When this applies
 
