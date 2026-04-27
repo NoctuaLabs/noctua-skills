@@ -51,7 +51,7 @@ NoctuaAdjustAttribution attr = await Noctua.GetAdjustAttributionAsync();
 Debug.Log($"Network={attr.Network} Campaign={attr.Campaign} Adid={attr.Adid}");
 ```
 
-Fields: `TrackerToken`, `TrackerName`, `Network`, `Campaign`, `AdGroup`, `Creative`, `ClickLabel`, `Adid`. Returns a default-initialized instance when Adjust isn't linked.
+Fields: `TrackerToken`, `TrackerName`, `Network`, `Campaign`, `Adgroup` (note lowercase 'g'), `Creative`, `ClickLabel`, `Adid`, `CostType`, `CostAmount` (`double`), `CostCurrency`, `FbInstallReferrer`. Returns a default-initialized instance when Adjust isn't linked. Verified against `Runtime/Model/Entities/NoctuaAdjustAttribution.cs`.
 
 ## Push notification events
 

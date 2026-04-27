@@ -213,7 +213,7 @@ Plus `NoctuaErrorCode.Payment` for category-level errors. See [error-handling.md
 - `Product` — `{ Id, Description, GameId, EnabledPaymentTypes : PaymentType[], Price : decimal, Currency, DisplayPrice, PriceInUsd, Platform }`
 - `OrderRequest` — `{ Id, PaymentType, ProductId, Price, Currency, PriceInUsd, RoleId, ServerId, IngameUsername, ExtraData }`
 - `OrderStatus` — enum: `pending`, `verification_failed`, `completed`, `canceled`, `refunded`, `voided`, `unknown`
-- `InternalPurchaseItem` — local pending/history row: `{ OrderId, ProductId, Status, Timestamp, ReceiptData }`
+- `InternalPurchaseItem` — local pending/history row: `{ OrderId, OrderRequest, VerifyOrderRequest, AccessToken, Status, PlayerId : long?, PurchaseToken }`. Product details (id, price, currency) live on the embedded `OrderRequest`. (`Runtime/Presenter/InternalPurchaseItem.cs`)
 - `PendingDeliverables` — `{ OrderId, Data : PendingDeliverablesData, CreatedAt }`
 - `NoctuaGoldData` — `{ VipLevel, GoldAmount, BoundGoldAmount, TotalGoldAmount, EligibleGoldAmount }` — see [Noctua Gold](#noctua-gold) for field semantics
 - `ClaimRedeemCodeResponse` — `{ OrderIds, Message }`

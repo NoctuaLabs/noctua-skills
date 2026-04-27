@@ -323,18 +323,18 @@ Field lists below match https://docs.noctua.gg/sdk/types.
 | `PurchaseResponse` | `OrderId`, `Status`, `Message`, `ReceiptData` |
 | `OrderRequest` | `Id` (`0` for new), `PaymentType`, `ProductId`, `Price`, `Currency`, `PriceInUsd`, `RoleId`, `ServerId`, `IngameUsername`, `ExtraData` |
 | `OrderStatus` | enum: `pending`, `verification_failed`, `completed`, `canceled`, `refunded`, `voided`, `unknown` |
-| `InternalPurchaseItem` | `OrderId`, `ProductId`, `Status`, `Timestamp`, `ReceiptData` |
+| `InternalPurchaseItem` | `{ OrderId, OrderRequest : OrderRequest, VerifyOrderRequest : VerifyOrderRequest, AccessToken, Status, PlayerId : long?, PurchaseToken }` (verified against `Runtime/Presenter/InternalPurchaseItem.cs`). The product details live on the embedded `OrderRequest`. |
 | `PaymentType` | enum: `unknown`, `playstore`, `appstore`, `direct`, `noctuawallet`, `noctuagold`, `editor` |
 | `NoctuaGoldData` | `{ VipLevel, GoldAmount, BoundGoldAmount, TotalGoldAmount, EligibleGoldAmount }` — all `double`. Verified against `Runtime/Model/DTOs/IAPModels.cs`. Use `EligibleGoldAmount` for the current purchase context. |
 | `PendingDeliverables` | `OrderId`, `Data : PendingDeliverablesData`, `CreatedAt` |
 | `ClaimRedeemCodeResponse` | `OrderIds : List<…>`, `Message` |
-| `ProductPurchaseStatus` | `IsPurchased`, `ExpiryTime` (iOS only; Android = 0), `IsAutoRenewing`, `OriginalPurchaseTime` |
+| `ProductPurchaseStatus` | `{ ProductId, IsPurchased, IsAcknowledged, IsAutoRenewing, PurchaseState : int (0=Unspecified / 1=Purchased / 2=Pending), PurchaseToken, PurchaseTime : long (ms epoch), ExpiryTime : long (ms epoch; 0 if N/A — always 0 on Android), OrderId, OriginalJson, TransactionJson }` (verified against `Runtime/Model/Entities/ProductPurchaseStatus.cs`). |
 
 ### Events
 | Type | Fields |
 |---|---|
 | `NativeEvent` | `Id`, `EventJson`, `Timestamp` |
-| `NoctuaAdjustAttribution` | `TrackerToken`, `TrackerName`, `Network`, `Campaign`, `AdGroup`, `Creative`, `ClickLabel`, `Adid` |
+| `NoctuaAdjustAttribution` | `{ TrackerToken, TrackerName, Network, Campaign, Adgroup, Creative, ClickLabel, Adid, CostType, CostAmount : double, CostCurrency, FbInstallReferrer }` (note: `Adgroup`, lowercase 'g'; verified against `Runtime/Model/Entities/NoctuaAdjustAttribution.cs`) |
 
 ### App
 | Type | Fields / values |
