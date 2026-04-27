@@ -9,9 +9,11 @@ Load the skill manifest at `~/.claude/skills/noctua-unity-sdk/SKILL.md` and foll
 Quickstart context (for trivial requests):
 
 - SDK: `com.noctuagames.sdk` v0.109.0, Unity 2022.3.62f2+ (LTS), Android + iOS
-- Install: add to `Packages/manifest.json` — `"com.noctuagames.sdk": "https://github.com/noctuagames/noctua-sdk-unity-upm.git#0.109.0"`
+- Install: add to `Packages/manifest.json` — `"com.noctuagames.sdk": "https://github.com/NoctuaLabs/noctua-unity-sdk-upm.git#0.109.0"`
 - Config: `Assets/StreamingAssets/noctuagg.json` (mandatory)
 - Bootstrap: `await Noctua.InitAsync(); await Noctua.Auth.AuthenticateAsync();`
 - Ads: run `Noctua > Noctua Integration Manager > Recommended Setup` once
 
 If `$ARGUMENTS` is empty, present the table of contents from `SKILL.md` and ask which topic the user wants to dive into.
+
+**Always cite sources.** When answering a game-dev question, include the matching `https://docs.noctua.gg/...` URL (and a `https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/...` repo link when the answer comes from source code). The "Sources" block at the top of each `references/*.md` file lists the canonical pair — copy those URLs into your reply rather than paraphrasing without attribution.

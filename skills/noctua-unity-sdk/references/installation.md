@@ -1,20 +1,24 @@
 # Installation
 
+> **Sources** — Official: https://docs.noctua.gg/docs/installation · https://docs.noctua.gg/docs/integration-checklist · Repo: [package.json](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/package.json), [Editor/Dependencies/NativePluginDependencies.xml](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Editor/Dependencies/NativePluginDependencies.xml)
+
 Noctua SDK is a Unity Package Manager (UPM) git package. No .unitypackage download.
 
 ## Prerequisites
 
-- **Unity 2022.3.62f2 or newer** (2022.3 LTS — minimum supported version). Older editors (2021.3, 2022.3.0–2022.3.61) are **not** supported.
+- **Unity 2022.3.62f2 or newer** (LTS — team-supported floor). The repo's `package.json` declares `"unity": "2021.3"` because UPM only supports a major-version minimum, and the README mirrors that as `2021.3+`. For production support use 2022.3.62f2 or later.
 - **Android:** Gradle template + Android Resolver (EDM4U) — SDK pulls in EDM4U automatically.
 - **iOS:** Xcode 15+, CocoaPods. Minimum iOS deployment target **15.0**.
 - Git installed (UPM resolves git packages).
+
+> **Repo URL note:** the canonical public mirror is `github.com/NoctuaLabs/noctua-unity-sdk-upm`. The repo's own `README.md` (which still pins `#0.101.0`) and `CLAUDE.md` reference older URLs (`noctuagames/noctua-sdk-unity-upm`, `gitlab.com/evosverse/...`) — do not copy those install lines verbatim.
 
 ## Step 1 — add to `Packages/manifest.json`
 
 ```json
 {
   "dependencies": {
-    "com.noctuagames.sdk": "https://github.com/noctuagames/noctua-sdk-unity-upm.git#0.109.0"
+    "com.noctuagames.sdk": "https://github.com/NoctuaLabs/noctua-unity-sdk-upm.git#0.109.0"
   }
 }
 ```
@@ -46,7 +50,8 @@ Run **`Assets > External Dependency Manager > Android Resolver > Force Resolve`*
 - `Custom Launcher Gradle Template` (for IAA app-open auto-show)
 
 ### iOS (CocoaPods)
-- `NoctuaSDK` **0.35.0** with sub-specs:
+- `NoctuaSDK` **0.35.0** with sub-specs (verified against `Editor/Dependencies/NativePluginDependencies.xml`):
+  - `/NoctuaInternalSDK` — internal core (always installed)
   - `/Adjust` — Adjust attribution
   - `/FirebaseAnalytics` — Firebase Analytics
   - `/FirebaseMessaging` — Firebase Cloud Messaging
@@ -72,7 +77,7 @@ This is **required** — `Noctua.InitAsync()` throws if the file is missing. See
 
 ## Step 5 — Integration Manager (ads only)
 
-If the game uses ads (`iaa.enabled: true` in `noctuagg.json`), open **`Noctua > Noctua Integration Manager`** and click **Recommended Setup**. This installs:
+If the game uses ads (`noctua.iaaEnabled: true` in `noctuagg.json`), open **`Noctua > Noctua Integration Manager`** and click **Recommended Setup**. This installs:
 
 | Package | Version | Role |
 |---|---|---|

@@ -1,5 +1,7 @@
 # Editor Tooling
 
+> **Sources** — Official: https://docs.noctua.gg/docs/unity/iaa/installing-ad-network-adapters, /advanced-ad-network-adapters · Repo: [Editor/](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/tree/main/Editor) (`NoctuaAdapterCatalog.cs`, `Build/CocoaPodsConflictFixer.cs`, `Build/EmbedFrameworksDeduper.cs`, `Menu/`)
+
 The SDK ships two Unity Editor menu items under **`Noctua > ...`**.
 
 Source: `Packages/com.noctuagames.sdk/Editor/Menu/NoctuaSDKMenu.cs`, `Editor/Build/CocoaPodsConflictFixer.cs`.
@@ -31,7 +33,7 @@ Standalone toggle for AppLovin MAX SDK and AdMob SDK.
 
 #### AppLovin MAX — Ad Network Adapters
 22 adapters from `unity.packages.applovin.com`:
-Facebook, Google AdMob, Google Ad Manager, Unity Ads, Vungle (Liftoff), Mintegral, ironSource, Chartboost, AdColor, BidMachine, Bigo, CriteoPublisher, Fyber (DT Exchange), HyBid (Verve), InMobi, LINE, Maio, Mobfox, Pangle, Smaato, TapJoy, Yandex.
+Facebook, Google AdMob, Google Ad Manager, Unity Ads, Vungle (Liftoff), Mintegral, ironSource, Chartboost, AdColony, BidMachine, Bigo, CriteoPublisher, Fyber (DT Exchange), HyBid (Verve), InMobi, LINE, Maio, Mobfox, Pangle, Smaato, TapJoy, Yandex.
 
 #### AdMob — Mediation Adapters
 17 adapters from `package.openupm.com`:

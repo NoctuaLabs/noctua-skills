@@ -1,5 +1,7 @@
 # `noctuagg.json` — SDK Configuration File
 
+> **Sources** — Official: https://docs.noctua.gg/docs/installation (configuration section) · Repo schema: [Runtime/Model/DTOs/](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/tree/main/Runtime/Model/DTOs) (`GlobalConfig.cs`, `NoctuaConfig.cs`, `AdjustConfig.cs`, `FirebaseConfig.cs`, `FacebookConfig.cs`, `GameServiceModels.cs`)
+
 **Required location:** `Assets/StreamingAssets/noctuagg.json`
 
 Without this file `Noctua.InitAsync()` throws `NoctuaException(NoctuaErrorCode.Application, ...)`. The SDK loads it at init via `UnityWebRequest` on Android (to handle `jar:file://` StreamingAssets) and `File.ReadAllText` on iOS / editor, with a 5-second timeout.
@@ -17,8 +19,7 @@ Source of truth for this schema: `Packages/com.noctuagames.sdk/Runtime/Model/DTO
 | `firebase` | object | if using Firebase | Firebase per-platform config |
 | `facebook` | object | if using Meta | Facebook App Events config |
 | `iaa` | object | if `noctua.iaaEnabled: true` | Ad mediation config |
-| `copublisher` | object | optional | Co-publisher branding (company name, URLs) |
-| `meta` | object | optional | Free-form build metadata (`name`, `version`) |
+| `copublisher` | object | optional | Co-publisher branding (all 4 string fields are `[JsonRequired]` when the block is present) |
 
 ## `noctua` (core SDK config)
 
@@ -31,9 +32,8 @@ From `NoctuaConfig.cs`:
 | `iaaEnabled` | bool | `false` | Enable in-app advertising |
 | `iapDisabled` | bool | `false` | Disable in-app purchases entirely |
 | `welcomeToastDisabled` | bool | `false` | Suppress the post-login toast |
-| `nativeInternalTrackerEnabled` | bool | `false` | Enable native-side internal tracker |
 | `trackerUrl` | string | `https://sdk-tracker.noctuaprojects.com/api/v1` | Event ingestion API |
-| `baseUrl` | string | `https://sdk-api-v2.noctuaprojects.com/api/v1` | Core SDK API |
+| `baseUrl` | string | `https://sdk-api-v2.noctuaprojects.com/api/v1` | Core SDK API. **Auto-swapped** to `https://sandbox-sdk-api-v2.noctuaprojects.com/api/v1` (the `DefaultSandboxBaseUrl` constant in `NoctuaConfig.cs`) when `sandboxEnabled: true` and `baseUrl` is left at the default. |
 | `announcementBaseUrl` | string | (platform default) | Announcements API |
 | `rewardBaseUrl` | string | (platform default) | Rewards API |
 | `socialMediaBaseUrl` | string | (platform default) | Social media API |
@@ -92,16 +92,16 @@ From `FacebookConfig.cs`:
 "facebook": {
   "android": {
     "appId": "1234567890",
-    "clientToken": "xxxxxxxxxxxxxxxx",
-    "displayName": "My Game",
-    "enableDebug": false,
-    "customEventDisabled": false
+    "clientToken": "xxxxxxxxxxxxxxxx"
   },
-  "ios": { "appId": "...", "clientToken": "...", "displayName": "My Game", "enableDebug": false, "customEventDisabled": false }
+  "ios": {
+    "appId": "...",
+    "clientToken": "..."
+  }
 }
 ```
 
-`appId` and `clientToken` are both required when `facebook` is present. The Android `BuildPostProcessor` auto-injects the Facebook `appId` as `<meta-data>` in `AndroidManifest.xml`.
+`appId` and `clientToken` are both `[JsonRequired]` when the `facebook` block is present (`FacebookAndroidConfig` / `FacebookIosConfig`). No other fields are deserialized — `displayName`, `enableDebug`, and `customEventDisabled` are not in the DTO and will be silently ignored if you add them. The Android `BuildPostProcessor` auto-injects the Facebook `appId` as `<meta-data>` in `AndroidManifest.xml`.
 
 ## `iaa` (in-app ads)
 
@@ -138,10 +138,6 @@ Save as `Assets/StreamingAssets/noctuagg.json` and replace the tokens:
     "companyTermUrl": "",
     "companyPrivacyUrl": ""
   },
-  "meta": {
-    "name": "My Game",
-    "version": 1
-  },
   "noctua": {
     "sentryDsnUrl": "",
     "sandboxEnabled": true,
@@ -149,14 +145,12 @@ Save as `Assets/StreamingAssets/noctuagg.json` and replace the tokens:
     "welcomeToastDisabled": false,
     "iaaEnabled": true,
     "iapDisabled": false,
-    "nativeInternalTrackerEnabled": false,
     "remoteFeatureFlags": {}
   },
   "adjust": {
     "android": {
       "environment": "sandbox",
       "appToken": "REPLACE",
-      "customEventDisabled": false,
       "eventMap": {
         "login": "xxxxxx",
         "purchase": "xxxxxx"
@@ -165,7 +159,6 @@ Save as `Assets/StreamingAssets/noctuagg.json` and replace the tokens:
     "ios": {
       "environment": "sandbox",
       "appToken": "REPLACE",
-      "customEventDisabled": false,
       "eventMap": {
         "login": "xxxxxx",
         "purchase": "xxxxxx"
@@ -177,20 +170,8 @@ Save as `Assets/StreamingAssets/noctuagg.json` and replace the tokens:
     "ios":     { "customEventDisabled": false }
   },
   "facebook": {
-    "android": {
-      "appId": "REPLACE",
-      "clientToken": "REPLACE",
-      "displayName": "My Game",
-      "enableDebug": false,
-      "customEventDisabled": false
-    },
-    "ios": {
-      "appId": "REPLACE",
-      "clientToken": "REPLACE",
-      "displayName": "My Game",
-      "enableDebug": false,
-      "customEventDisabled": false
-    }
+    "android": { "appId": "REPLACE", "clientToken": "REPLACE" },
+    "ios":     { "appId": "REPLACE", "clientToken": "REPLACE" }
   },
   "iaa": {
     "mediation": "admob",

@@ -1,6 +1,6 @@
 # `Noctua.Auth` — Authentication
 
-Source: `Packages/com.noctuagames.sdk/Runtime/View/NoctuaAuthentication.cs`.
+> **Sources** — Official API: https://docs.noctua.gg/sdk/auth · Tutorials: https://docs.noctua.gg/docs/unity/authentication/overview, /integrate-noctua-account, /integrate-authentication-features, /cloud-game-state, /updating-player-account · Repo: [Runtime/View/NoctuaAuthentication.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/View/NoctuaAuthentication.cs)
 
 The SDK supports: guest login, email register/login (with verification codes), password reset, social login (Google / Facebook / Apple / etc.), account switching, account deletion, cloud save (`GameState`).
 

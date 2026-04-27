@@ -1,6 +1,6 @@
 # `Noctua.IAA` — In-App Advertising
 
-Source: `Packages/com.noctuagames.sdk/Runtime/Presenter/MediationManager.cs`.
+> **Sources** — Official API: https://docs.noctua.gg/sdk/iaa · Tutorials: https://docs.noctua.gg/docs/unity/iaa/overview, /implementing-in-app-ads, /installing-ad-network-adapters, /advanced-ad-network-adapters, /advanced-configuration, /advanced-main-thread-callbacks, /fallback-mechanism · Per-format guides: /ad-formats/banner, /ad-formats/interstitial, /ad-formats/rewarded, /ad-formats/rewarded-interstitial, /ad-formats/app-open · Event schema: [iaa-event-schema.md](iaa-event-schema.md) · Debug: https://docs.noctua.gg/docs/unity/debug-and-testing/iaa-debugging, /taichi-debugging · Repo: [Runtime/Presenter/MediationManager.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/Presenter/MediationManager.cs)
 
 Unified mediator for AppLovin MAX and Google AdMob (GMA). Supports banner, interstitial, rewarded, rewarded-interstitial, and app-open ad formats.
 
@@ -150,18 +150,38 @@ Noctua.IAA.ShowAdPlaceholder(AdPlaceholderType.Interstitial);  // fake placehold
 Noctua.IAA.CloseAdPlaceholder();
 ```
 
-## Segmentation / experiments (read-only info)
+## Segmentation / experiments / CPM diagnostics (read-only)
 
 ```csharp
-string segmentKey = Noctua.IAA.GetSegmentKey();
-IAA   response    = Noctua.IAA.IAAResponse;           // current merged config
-string mediator   = Noctua.IAA.MediationType;         // "admob" or "applovin"
-bool   hybrid     = Noctua.IAA.IsHybridMode;          // primary + secondary active
+string segmentKey = Noctua.IAA.GetSegmentKey();        // e.g. "t1_nonpayer_loyal_d30plus" or "not initialized"
+string mediator   = Noctua.IAA.MediationType;          // "admob" or "applovin"
+bool   hybrid     = Noctua.IAA.IsHybridMode;           // primary + secondary active
+
+// Active A/B variants per experiment ID, persisted in PlayerPrefs (stable across sessions)
+Dictionary<string,string> variants = Noctua.IAA.GetExperimentAssignments();
+
+// Per-format / per-network CPM floor evaluation result (or "CPM floors disabled")
+Dictionary<string,string> floors  = Noctua.IAA.GetCpmFloorStatus();
+
+// AppLovin banner geometry on screen
+Rect bannerRect = Noctua.IAA.GetBannerPosition();
 ```
+
+> The merged runtime IAA config (`Noctua.IAA.IAAResponse`) is `internal` and cannot be read from game code. Use the sandbox **Inspector → Config tab** to view it during development. See [experiments.md](experiments.md) for the full segmentation / floor / experiment story.
 
 ## Frequency caps & cooldowns
 
 Configured entirely in `noctuagg.json → iaa.frequency_caps` and `iaa.cooldown_seconds`. When a cap/cooldown blocks a show call, the SDK fires `OnAdNotAvailable(reason)` instead of displaying — game code should have fallback UX.
+
+Server config merge (since 0.98.0) is **field-by-field** for `frequency_caps` and `cooldown_seconds`: a remote override that only specifies `interstitial.max_impressions` keeps the local `interstitial.window_seconds` and the entire local `app_open` block. Don't assume the remote payload is a full replacement — partial overrides are first-class.
+
+## Secondary network fallback
+
+If `iaa.secondary_mediation` is set, the SDK transparently falls back when the primary network returns no fill for `banner` / `interstitial` / `rewarded`. Game code does not need to retry — `OnAdNotAvailable` only fires after **both** networks have been tried. Inspect `Noctua.IAA.IsHybridMode` to confirm the fallback path is wired.
+
+## "Remove ads" IAP and `IAdNetwork` no-ops
+
+If your game ships an IAP that disables ads, you may try to compile out one mediator (`UNITY_APPLOVIN` off, `UNITY_ADMOB` on, or vice versa). Older SDK versions threw `NotImplementedException` from the disabled adapter's interface methods. The 0.109.0 fix makes those default-method implementations safe no-ops, so the IAP "remove ads" flow no longer needs to also strip the cross-network call sites — keep your code path single and let the inactive adapter quietly do nothing.
 
 ## Sample app reference
 

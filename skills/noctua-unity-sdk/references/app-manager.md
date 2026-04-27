@@ -1,6 +1,6 @@
 # `Noctua.App` — In-App Review & App Update
 
-Source: `Packages/com.noctuagames.sdk/Runtime/View/NoctuaAppManager.cs`.
+> **Sources** — Official API: https://docs.noctua.gg/sdk/app · Tutorial: https://docs.noctua.gg/docs/unity/app-management · Repo: [Runtime/View/NoctuaAppManager.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/View/NoctuaAppManager.cs)
 
 Wraps **Google Play In-App Review**, **Google Play In-App Update** (Android), and native review request (iOS).
 
@@ -53,23 +53,24 @@ AppUpdateResult result = await Noctua.App.StartFlexibleUpdate(onProgress: (float
     UpdateProgressBar(p);   // 0.0 → 1.0
 });
 
-if (result.IsDownloaded)
+if (result == AppUpdateResult.Completed)
 {
-    // Offer user a "Restart now" prompt
+    // Binary downloaded and ready; ask the user before restarting.
     Noctua.App.CompleteUpdate();   // triggers install + restart
 }
 ```
 
 ## Update result states
 
-`AppUpdateResult.Status` / `.IsDownloaded` indicate:
+`AppUpdateResult` is an **enum** (not a struct — see https://docs.noctua.gg/sdk/types). Compare with `==`.
 
-| State | Meaning |
+| Value | Meaning |
 |---|---|
-| Downloaded | Binary ready; call `CompleteUpdate()` to install |
-| Installing | Install in progress |
-| Failed | Download/install failed — check `Message` |
-| Canceled | User canceled the update flow |
+| `NotAvailable` | No update flow ran (unsupported platform, or `CheckForUpdate` returned `IsUpdateAvailable=false`). |
+| `Completed` | Update downloaded / installed successfully. For flexible updates this means the binary is ready — call `CompleteUpdate()` to apply. |
+| `Canceled` | User canceled the update flow. |
+| `Failed` | Download or install failed. |
+| `InProgress` | Returned while a flow is still running (rare in awaited paths). |
 
 ## Combined pattern
 
@@ -80,12 +81,13 @@ if (!info.IsUpdateAvailable) return;
 
 if (info.UpdatePriority >= 4 && info.IsImmediateUpdateAllowed)
 {
-    await Noctua.App.StartImmediateUpdate();   // force critical updates
+    var r = await Noctua.App.StartImmediateUpdate();   // force critical updates
+    if (r == AppUpdateResult.Failed) ShowFatalDialog("Update failed");
 }
 else if (info.IsFlexibleUpdateAllowed)
 {
-    var result = await Noctua.App.StartFlexibleUpdate(p => UpdateUI(p));
-    if (result.IsDownloaded && UserAcceptedRestart())
+    var r = await Noctua.App.StartFlexibleUpdate(p => UpdateUI(p));
+    if (r == AppUpdateResult.Completed && UserAcceptedRestart())
     {
         Noctua.App.CompleteUpdate();
     }
@@ -94,11 +96,9 @@ else if (info.IsFlexibleUpdateAllowed)
 
 ## iOS fallback
 
-On iOS `CheckForUpdate`, `StartImmediateUpdate`, `StartFlexibleUpdate` return `AppUpdateResult` with `IsUpdateAvailable = false`. Use your own App Store version check + `Application.OpenURL("itms-apps://...")` if needed.
+On iOS `CheckForUpdate` returns `AppUpdateInfo` with `IsUpdateAvailable=false`; `StartImmediateUpdate` / `StartFlexibleUpdate` return `AppUpdateResult.NotAvailable`. Use your own App Store version check + `Application.OpenURL("itms-apps://...")` if needed.
 
 ## Types
 
-- `AppUpdateInfo` — `{ IsUpdateAvailable, IsImmediateUpdateAllowed, IsFlexibleUpdateAllowed, UpdatePriority, AvailableVersionCode, ... }`
-- `AppUpdateResult` — `{ Status, IsDownloaded, IsInstalled, Message, ... }`
-
-See `Runtime/Model/Entities/` for exact field layouts.
+- `AppUpdateInfo` — `{ IsUpdateAvailable, IsImmediateUpdateAllowed, IsFlexibleUpdateAllowed, UpdatePriority (0–5), AvailableVersionCode }`
+- `AppUpdateResult` — enum: `NotAvailable`, `Completed`, `Canceled`, `Failed`, `InProgress`

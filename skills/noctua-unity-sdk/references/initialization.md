@@ -1,5 +1,7 @@
 # Initialization
 
+> **Sources** — Official API: https://docs.noctua.gg/sdk/noctua · Repo: [Runtime/View/Noctua.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/View/Noctua.cs), [Runtime/View/Noctua.Initialization.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/View/Noctua.Initialization.cs)
+
 The SDK is initialized once per app lifetime, typically in a **Splash** scene before loading gameplay.
 
 Source: `Packages/com.noctuagames.sdk/Runtime/View/Noctua.Initialization.cs`, `Assets/SplashScript.cs` (sample).
@@ -55,11 +57,19 @@ Available events (see [authentication.md](authentication.md), [iap.md](iap.md) f
 
 | Event | Arg type | Fires when |
 |---|---|---|
-| `Noctua.OnInitSuccess` | `Action` | `InitAsync` completes without error |
+| `Noctua.OnInitSuccess` | `Action?` (public field, not `event`) | `InitAsync` completes without error |
 | `Noctua.Auth.OnAccountChanged` | `Action<UserBundle>` | login, logout, account switch (arg can be null on logout) |
 | `Noctua.Auth.OnAccountDeleted` | `Action<Player>` | User-initiated account deletion |
 | `Noctua.IAP.OnPurchaseDone` | `Action<OrderRequest>` | Backend-verified purchase |
 | `Noctua.IAP.OnPurchasePending` | `Action<OrderRequest>` | Payment completed, verification in-flight |
+
+## `InitAsync` signature
+
+```csharp
+public static UniTask InitAsync(Func<UniTask>? onSuccess = null);
+```
+
+The optional `onSuccess` callback runs after the init pipeline completes (after `OnInitSuccess` fires). Use it when you'd rather pass a delegate than subscribe to the field — both are supported.
 
 ## What `InitAsync` does
 

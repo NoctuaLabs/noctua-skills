@@ -1,6 +1,6 @@
 # `Noctua.Event` — Analytics
 
-Source: `Packages/com.noctuagames.sdk/Runtime/Presenter/NoctuaEventService.cs`.
+> **Sources** — Official API: https://docs.noctua.gg/sdk/event · Tutorials: https://docs.noctua.gg/docs/unity/tracking/overview, /built-in-analytics, /custom-events-tracking, /tracking-revenue, /feature-engagement-tracking, /game-stage-tracking · IAA event schema: [iaa-event-schema.md](iaa-event-schema.md) · Repo: [Runtime/Presenter/NoctuaEventService.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/Presenter/NoctuaEventService.cs)
 
 Tracks custom events, purchase revenue, ad revenue, and feature engagement. Routes events to Noctua tracker API, Adjust, Firebase, and Facebook based on `noctuagg.json`.
 
@@ -110,6 +110,10 @@ Noctua.Event.SetProperties(
 );
 ```
 
+## Auto-emitted error events
+
+Since 0.109.0 the `GlobalExceptionLogger` forwards `Debug.LogWarning` / `LogError` / `LogException` as `client_error` events (`source=managed`), and reads platform crash registries on startup to emit `client_error` (`source=native`) for last-launch crashes (iOS MetricKit, Android historical exit reasons). Throttled at 30/min with 60s dedup. **Don't put PII in `Debug.Log` strings.** See [error-handling.md](error-handling.md#client_error-event-auto-emitted).
+
 ## Experiments / A-B tags
 
 ```csharp
@@ -129,15 +133,16 @@ Events are persisted locally before HTTP flush (offline-first). Static helpers o
 ```csharp
 int total = await Noctua.GetEventCountAsync();
 
+// Per-row reader: returns typed NativeEvent { Id, EventJson, Timestamp }
 List<NativeEvent> batch = await Noctua.GetEventsBatchAsync(limit: 100, offset: 0);
 
 int deleted = await Noctua.DeleteEventsByIdsAsync(new long[] { 1, 2, 3 });
 
-// Debug-only: dump raw storage
-List<NativeEvent> all = await Noctua.GetEventsAsync();
-Noctua.DeleteEvents();                    // clear all — destructive, debug only
-Noctua.InsertEvent(customJsonString);     // inject a raw event row
-Noctua.SaveEvents(jsonArrayString);       // replace storage from JSON
+// Debug-only: dump raw storage as JSON strings (no typed wrapper)
+List<string> all = await Noctua.GetEventsAsync();
+Noctua.DeleteEvents();                              // clear all — destructive, debug only
+Noctua.InsertEvent(customJsonString);               // inject a raw event row
+Noctua.SaveEvents(jsonArrayString);                 // replace storage from JSON
 ```
 
 ## Pseudo-user ID

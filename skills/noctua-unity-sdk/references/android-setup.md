@@ -1,5 +1,7 @@
 # Android Setup
 
+> **Sources** — Official: https://docs.noctua.gg/docs/installation, https://docs.noctua.gg/docs/android-native, /android-native/custom-event-tracking, /android-native/tracking-revenue · Repo: [Editor/Build/BuildPostProcessor.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Editor/Build/BuildPostProcessor.cs), [Editor/Dependencies/NativePluginDependencies.xml](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Editor/Dependencies/NativePluginDependencies.xml)
+
 Noctua SDK manages most Android configuration automatically via EDM4U and `BuildPostProcessor`. Game-side changes are minimal.
 
 Source: `Packages/com.noctuagames.sdk/Editor/Build/BuildPostProcessor.cs`, `Editor/Dependencies/NativePluginDependencies.xml`.

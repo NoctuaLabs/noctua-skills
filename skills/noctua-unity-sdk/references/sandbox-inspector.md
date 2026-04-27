@@ -1,8 +1,10 @@
 # Noctua Inspector (Sandbox Debug Overlay)
 
+> **Sources** — Official tutorial: https://docs.noctua.gg/docs/unity/debug-and-testing/noctua-inspector · Companion debug pages: /retrieve-sdk-logs, /event-tracking-debugging, /iaa-debugging, /taichi-debugging · Repo: [Runtime/Inspector/NoctuaInspectorController.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/Inspector/NoctuaInspectorController.cs), [Runtime/Infrastructure/Network/HttpInspectorLog.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/Infrastructure/Network/HttpInspectorLog.cs), [Runtime/Presenter/TrackerDebugMonitor.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/Presenter/TrackerDebugMonitor.cs)
+
 In-app debug overlay that surfaces SDK HTTP requests, tracker events, and Firebase/Adjust/Facebook lifecycle on-device — no `adb logcat` or Xcode needed.
 
-Introduced in SDK 0.109.0 (Beta). Source: `Packages/com.noctuagames.sdk/Runtime/View/Noctua.Initialization.cs:132-157`, `Runtime/Inspector/NoctuaInspectorController.cs`.
+Introduced in SDK 0.109.0 (Beta). Source: `Runtime/View/Noctua.Initialization.cs` (overlay spawn), `Runtime/Inspector/NoctuaInspectorController.cs` (UI), `Runtime/Infrastructure/Network/HttpInspectorLog.cs` (HTTP capture), `Runtime/Presenter/TrackerDebugMonitor.cs` (tracker capture).
 
 ## Enable
 
@@ -45,19 +47,26 @@ Four tabs:
 ```csharp
 if (Noctua.IsSandbox())
 {
-    // Dump recent HTTP
-    foreach (var entry in Noctua.HttpLog.Entries)
+    // Dump recent HTTP — actual API is Snapshot(), not .Entries
+    // (Runtime/Infrastructure/Network/HttpInspectorLog.cs → IReadOnlyList<HttpExchange>)
+    foreach (var entry in Noctua.HttpLog.Snapshot())
     {
         Debug.Log($"{entry.Method} {entry.Url} → {entry.Status}");
     }
 
-    // Dump recent tracker events
-    foreach (var ev in Noctua.DebugMonitor.Entries)
+    // Dump recent tracker events — Snapshot accepts an optional provider filter
+    // (Runtime/Presenter/TrackerDebugMonitor.cs)
+    foreach (var ev in Noctua.DebugMonitor.Snapshot())
     {
         Debug.Log($"{ev.EventName} → {ev.State}");
     }
+
+    // Filter to a single provider:
+    var adjustOnly = Noctua.DebugMonitor.Snapshot(providerFilter: "adjust");
 }
 ```
+
+> Earlier drafts referenced `Noctua.HttpLog.Entries` and `Noctua.DebugMonitor.Entries`. Those properties do not exist — the inspector exposes immutable snapshots via `Snapshot()` so concurrent writes from the SDK background thread can't tear the read.
 
 ## Typical uses
 

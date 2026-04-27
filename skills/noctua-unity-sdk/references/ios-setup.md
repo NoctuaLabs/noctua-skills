@@ -1,5 +1,7 @@
 # iOS Setup
 
+> **Sources** — Official: https://docs.noctua.gg/docs/installation, https://docs.noctua.gg/docs/ios-native, /ios-native/custom-event-tracking, /ios-native/tracking-revenue · Repo: [Editor/Build/BuildPostProcessor.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Editor/Build/BuildPostProcessor.cs), [Editor/Build/CocoaPodsConflictFixer.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Editor/Build/CocoaPodsConflictFixer.cs), [Editor/Dependencies/NativePluginDependencies.xml](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Editor/Dependencies/NativePluginDependencies.xml)
+
 iOS integration is handled almost entirely by `BuildPostProcessor`. Game-side changes: a Player Settings tweak and optional ATT handling.
 
 Source: `Packages/com.noctuagames.sdk/Editor/Build/BuildPostProcessor.cs`, `Editor/Build/CocoaPodsConflictFixer.cs`, `Editor/Dependencies/NativePluginDependencies.xml`.
@@ -40,7 +42,7 @@ Pod `NoctuaSDK` 0.35.0 with sub-specs is declared via EDM4U. Pod install runs au
 
 ### SKAdNetwork identifiers
 
-Auto-injects **46+ `SKAdNetworkItems`** (partial list):
+Auto-injects **~42 `SKAdNetworkItems`** (verified count from `Editor/Build/BuildPostProcessor.cs` at v0.109.0; partial list):
 
 | Network | ID |
 |---|---|

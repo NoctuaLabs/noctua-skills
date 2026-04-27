@@ -1,6 +1,8 @@
 # `Noctua.Platform` — Locale & Web Content
 
-Source: `Packages/com.noctuagames.sdk/Runtime/View/NoctuaPlatform.cs` → exposes two sub-facades:
+> **Sources** — Official APIs: https://docs.noctua.gg/sdk/platform-content, https://docs.noctua.gg/sdk/platform-locale · Tutorials: https://docs.noctua.gg/docs/unity/platform/overview, /content-announcement, /content-customer-service, /content-reward, /content-social-media, /locale · Repo: [Runtime/View/NoctuaPlatform.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/View/NoctuaPlatform.cs), [Runtime/View/NoctuaWebContent.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/View/NoctuaWebContent.cs), [Runtime/View/NoctuaLocale.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/View/NoctuaLocale.cs)
+
+Source: `Runtime/View/NoctuaPlatform.cs` → exposes two sub-facades:
 - `Noctua.Platform.Locale` → `NoctuaLocale` (`Runtime/View/NoctuaLocale.cs`)
 - `Noctua.Platform.Content` → `NoctuaWebContent` (`Runtime/View/NoctuaWebContent.cs`)
 
@@ -29,8 +31,23 @@ SDK ships built-in UI strings (login, IAP dialog, etc.) — access them for your
 ```csharp
 string text = Noctua.Platform.Locale.GetTranslation("login_title");
 
-// Or by enum (type-safe)
-string text2 = Noctua.Platform.Locale.GetTranslation(LocaleTextKey.LoginTitle);
+// Or by enum (type-safe) — see api-reference.md → Locale for the full LocaleTextKey list
+string text2 = Noctua.Platform.Locale.GetTranslation(LocaleTextKey.OfflineModeMessage);
+
+// Pull the full dictionary for the active language (e.g. to mirror it into your own UI table)
+Dictionary<string,string> all = Noctua.Platform.Locale.GetTranslations();
+```
+
+### Reacting to language changes
+
+```csharp
+Noctua.Platform.Locale.OnLanguageChanged += newLang =>
+{
+    Debug.Log($"UI language changed to {newLang}");
+    RefreshAllLocalizedText();
+};
+
+Noctua.Platform.Locale.SetUserPrefsLanguage("vi"); // raises OnLanguageChanged if it actually changed
 ```
 
 ## Web Content — `Noctua.Platform.Content`
@@ -39,12 +56,15 @@ Opens embedded WebViews for announcements, rewards, customer service, social med
 
 ### Announcement
 ```csharp
-await Noctua.Platform.Content.ShowAnnouncement();
+bool shown = await Noctua.Platform.Content.ShowAnnouncement();
+if (!shown) Debug.Log("Announcement skipped (24-h cooldown or no content)");
 ```
 
 ### Customer service
 ```csharp
+// Both params have defaults: reason = "general", context = ""
 await Noctua.Platform.Content.ShowCustomerService();
+await Noctua.Platform.Content.ShowCustomerService(reason: "iap_failed", context: "{\"orderId\":42}");
 ```
 
 ### Reward / Redemption center
@@ -54,7 +74,8 @@ await Noctua.Platform.Content.ShowReward();
 
 ### Social media hub
 ```csharp
-await Noctua.Platform.Content.ShowSocialMedia();
+bool shown = await Noctua.Platform.Content.ShowSocialMedia();
+if (!shown) Debug.Log("No social media page configured for this game/region");
 ```
 
 All four:

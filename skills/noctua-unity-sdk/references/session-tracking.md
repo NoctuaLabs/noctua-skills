@@ -1,5 +1,7 @@
 # Session & Engagement Tracking
 
+> **Sources** — Official tutorials: https://docs.noctua.gg/docs/unity/tracking/overview, /built-in-analytics, /feature-engagement-tracking · Repo: [Runtime/Presenter/NativeSessionTracker.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/Presenter/NativeSessionTracker.cs), [Runtime/Presenter/NoctuaEventService.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/Presenter/NoctuaEventService.cs)
+
 The SDK automatically tracks session lifecycle and engagement time. Game code does not need to emit these events — and **must not** (double-counting).
 
 Source: `Packages/com.noctuagames.sdk/Runtime/Presenter/SessionTracker.cs`, `Runtime/Infrastructure/EventSender.cs`.
