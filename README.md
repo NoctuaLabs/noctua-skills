@@ -4,7 +4,7 @@ AI-agent skills for integrating Noctua Games SDKs. Currently ships one skill:
 
 | Skill | Scope | Version targeted |
 |---|---|---|
-| [`noctua-unity-sdk`](skills/noctua-unity-sdk/SKILL.md) | Noctua Unity SDK integration (install, config, Auth, IAP, Events, IAA, build post-process) | SDK 0.109.0 / Unity 2022.3.62f2+ |
+| [`noctua-unity-sdk`](skills/noctua-unity-sdk/SKILL.md) | Noctua Unity SDK integration — install, `noctuagg.json`, Auth, IAP, Events, IAA + canonical ad-event schema, Firebase / Adjust attribution / push notifications, experiments & CPM floors, Android + iOS build post-processing, Noctua Inspector | SDK 0.109.0 / Unity 2022.3.62f2+ |
 
 The content is plain markdown with Claude-compatible YAML frontmatter, so it works in Claude Code, Claude.ai, the Claude Agent SDK, **and** other AI agents (Cursor, Codex CLI, Aider, Copilot) via the root [`AGENTS.md`](AGENTS.md) entry point.
 
@@ -72,17 +72,20 @@ Paste the contents of [`skills/noctua-unity-sdk/SKILL.md`](skills/noctua-unity-s
 ## How it works
 
 - [`skills/noctua-unity-sdk/SKILL.md`](skills/noctua-unity-sdk/SKILL.md) — the skill manifest. Short quickstart + an index pointing at detailed reference files.
-- [`skills/noctua-unity-sdk/references/`](skills/noctua-unity-sdk/references/) — one file per topic (installation, noctuagg.json schema, Auth/IAP/Events/IAA APIs, Android/iOS build setup, editor tooling, error handling). Agents load only what they need to keep context small.
+- [`skills/noctua-unity-sdk/references/`](skills/noctua-unity-sdk/references/) — one file per topic (installation, `noctuagg.json` schema, Auth/IAP/Events/IAA APIs, IAA event schema, Firebase + push, experiments + CPM floors, Android/iOS build setup, editor tooling, Noctua Inspector, error handling, session tracking, full API reference). Agents load only what they need to keep context small.
+- [`AGENTS.md`](AGENTS.md) — cross-tool entry point (Cursor / Codex CLI / Aider / Copilot).
+- [`CLAUDE.md`](CLAUDE.md) — project memory for anyone working on **this repo** (maintaining the skill itself), not for game devs using it.
 
-Every API signature, config field, and file path is verified against the Noctua Unity SDK source — no hallucinations.
+Every API signature, config field, type, and file path is verified against three sources of truth: the official docs at <https://docs.noctua.gg/sdk>, the open-source UPM repo at <https://github.com/NoctuaLabs/noctua-unity-sdk-upm>, and the C# DTOs. No hallucinations. Each reference file opens with a `> **Sources**` block linking the matching docs page and repo file(s) so the agent can cite them when answering.
 
 ## Contributing
 
-Issues and PRs welcome. When the Noctua Unity SDK ships a new version, update:
+Issues and PRs welcome. See [`CLAUDE.md`](CLAUDE.md) for the maintainer playbook (sources of truth, golden rules, common workflows, verification grep snippets). The short version — when the Noctua Unity SDK ships a new version:
 
-1. Version numbers in `skills/noctua-unity-sdk/SKILL.md` frontmatter and the installation reference.
-2. Any API signatures that changed — cross-check against the SDK source files listed in the reference.
-3. `skills/noctua-unity-sdk/references/api-reference.md` if the public surface changed.
+1. Bump the SDK version in: `skills/noctua-unity-sdk/SKILL.md` frontmatter, `commands/noctua-unity-sdk.md`, `skills/noctua-unity-sdk/references/installation.md`, `README.md`, `AGENTS.md`.
+2. Read the upstream `CHANGELOG.md` `[Unreleased]` block and update each affected reference file.
+3. Cross-check API signatures against <https://docs.noctua.gg/sdk> and the C# source under `Runtime/View/`, `Runtime/Presenter/`, `Runtime/Model/DTOs/`.
+4. Run the verification greps in [`CLAUDE.md`](CLAUDE.md) before committing.
 
 ## License
 

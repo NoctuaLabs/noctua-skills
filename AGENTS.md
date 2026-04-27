@@ -4,14 +4,16 @@ This file briefs any AI coding agent (Cursor, Codex CLI, Aider, Copilot, Claude 
 
 **SDK version targeted:** 0.109.0 · **Unity:** 2022.3.62f2+ (LTS) · **Platforms:** Android, iOS
 
+**Sources** — Always cite the matching URL when answering: official API at https://docs.noctua.gg/sdk, tutorials at https://docs.noctua.gg/docs, open-source UPM repo at https://github.com/NoctuaLabs/noctua-unity-sdk-upm. Each `references/*.md` file in this skill opens with a `> **Sources**` block — copy those links into your replies rather than paraphrasing.
+
 ## When this applies
 
 Activate this guidance when the user mentions any of:
 
 - "Noctua SDK", "Noctua Unity SDK", "com.noctuagames.sdk"
 - `noctuagg.json`, `Noctua.InitAsync`, `NoctuaException`
-- `Noctua.Auth`, `Noctua.IAP`, `Noctua.IAA`, `Noctua.Event`, `Noctua.Platform`, `Noctua.App`
-- Integrating Noctua Games analytics, auth, IAP, or ads into a Unity project
+- `Noctua.Auth`, `Noctua.IAP`, `Noctua.IAA`, `Noctua.Event`, `Noctua.Platform`, `Noctua.App`, `Noctua.Firebase` / `Noctua.GetFirebase*`
+- Integrating Noctua Games analytics, auth, IAP, ads, push notifications, or experiments into a Unity project
 
 ## Golden rules
 
@@ -35,15 +37,18 @@ Activate this guidance when the user mentions any of:
 | `Noctua.IAP` — products, purchase, pending | [skills/noctua-unity-sdk/references/iap.md](skills/noctua-unity-sdk/references/iap.md) |
 | `Noctua.Event` — custom events, revenue | [skills/noctua-unity-sdk/references/events.md](skills/noctua-unity-sdk/references/events.md) |
 | `Noctua.IAA` — ads (banner/interstitial/rewarded/app-open) | [skills/noctua-unity-sdk/references/iaa-ads.md](skills/noctua-unity-sdk/references/iaa-ads.md) |
+| Canonical IAA event schema (`ad_loaded`, `ad_impression`, `wf_*`, `watch_ads_*`, Taichi) | [skills/noctua-unity-sdk/references/iaa-event-schema.md](skills/noctua-unity-sdk/references/iaa-event-schema.md) |
 | `Noctua.Platform` — locale, web content | [skills/noctua-unity-sdk/references/platform-features.md](skills/noctua-unity-sdk/references/platform-features.md) |
 | `Noctua.App` — in-app review, updates | [skills/noctua-unity-sdk/references/app-manager.md](skills/noctua-unity-sdk/references/app-manager.md) |
+| Firebase / Adjust attribution / push notifications (`Noctua.GetFirebase*`, `OnRemoteNotificationReceived`, `OnNotificationTapped`, FCM token) | [skills/noctua-unity-sdk/references/firebase-and-push.md](skills/noctua-unity-sdk/references/firebase-and-push.md) |
+| A/B experiments, user segments, CPM floors | [skills/noctua-unity-sdk/references/experiments.md](skills/noctua-unity-sdk/references/experiments.md) |
 | Android build setup | [skills/noctua-unity-sdk/references/android-setup.md](skills/noctua-unity-sdk/references/android-setup.md) |
 | iOS build setup (SKAdNetworks, CocoaPods) | [skills/noctua-unity-sdk/references/ios-setup.md](skills/noctua-unity-sdk/references/ios-setup.md) |
 | Editor menu tooling | [skills/noctua-unity-sdk/references/editor-tooling.md](skills/noctua-unity-sdk/references/editor-tooling.md) |
 | Noctua Inspector (sandbox debug overlay) | [skills/noctua-unity-sdk/references/sandbox-inspector.md](skills/noctua-unity-sdk/references/sandbox-inspector.md) |
 | Error handling (`NoctuaException`) | [skills/noctua-unity-sdk/references/error-handling.md](skills/noctua-unity-sdk/references/error-handling.md) |
 | Session & engagement tracking | [skills/noctua-unity-sdk/references/session-tracking.md](skills/noctua-unity-sdk/references/session-tracking.md) |
-| Full public API index | [skills/noctua-unity-sdk/references/api-reference.md](skills/noctua-unity-sdk/references/api-reference.md) |
+| Full public API index + types | [skills/noctua-unity-sdk/references/api-reference.md](skills/noctua-unity-sdk/references/api-reference.md) |
 
 ## Minimal working sample
 
@@ -57,16 +62,17 @@ public class NoctuaBootstrap : MonoBehaviour
 {
     private async void Start()
     {
-        Noctua.OnInitSuccess += () => Debug.Log("Noctua ready");
-        Noctua.Auth.OnAccountChanged += u => Debug.Log($"Account: {u?.DisplayName}");
-        Noctua.IAP.OnPurchaseDone     += o => Debug.Log($"Purchase done: {o.OrderId}");
+        Noctua.OnInitSuccess           += ()  => Debug.Log("Noctua ready");
+        Noctua.Auth.OnAccountChanged   += u   => Debug.Log($"Account: {u?.Player?.Nickname}");
+        Noctua.IAP.OnPurchaseDone      += o   => Debug.Log($"Purchase done: order #{o.Id}, product {o.ProductId}");
+        Noctua.IAP.OnPurchasePending   += o   => Debug.Log($"Purchase pending: order #{o.Id}");
 
         try
         {
             await Noctua.InitAsync();                  // loads noctuagg.json
             await Noctua.Auth.AuthenticateAsync();     // auto-login or show UI
         }
-        catch (NoctuaException nex) { Debug.LogError($"Noctua {nex.ErrorCode}: {nex.Message}"); }
+        catch (NoctuaException nex) { Debug.LogError($"Noctua {nex.ErrorCode}: {nex.Message} (payload={nex.Payload})"); }
         catch (Exception e)         { Debug.LogError($"Init failed: {e.Message}"); }
     }
 }
