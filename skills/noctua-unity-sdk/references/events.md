@@ -185,3 +185,136 @@ Noctua.Event.TrackCustomEvent("currency_spend",
 - Use **numeric** values when you want to compute sums / averages server-side (`duration_ms`, `gold_spent`)
 - Use **strings** only for categorical dimensions (`hero_class`, `stage_mode`)
 - Reuse the same property key across related events to keep dashboards clean
+
+## Implementation guide — `eventMap` and the unified tracker
+
+`Noctua.Event.TrackCustomEvent` fans out to **Noctua + Firebase + Facebook + Adjust** in a single call. The wrinkle is Adjust: every event needs a pre-registered token. Map them in `noctuagg.json → adjust.<platform>.eventMap`:
+
+```json
+"adjust": {
+  "android": {
+    "eventMap": { "purchase": "qye2vk", "level_up": "xoizir" }
+  }
+}
+```
+
+Unmapped events **still reach Firebase + Facebook + Noctua** — they just skip Adjust. The Noctua team usually provides an "Integration Manifest Document" listing the events your title should track, with the matching Adjust tokens.
+
+## Implementation guide — dynamic event names with `suffix`
+
+Pass a `"suffix"` key to append a runtime-computed segment to the event name (per https://docs.noctua.gg/docs/unity/tracking/custom-events-tracking):
+
+```csharp
+// Dispatched as "level_99"
+Noctua.Event.TrackCustomEvent("level", new Dictionary<string, IConvertible>
+{
+    { "suffix", "99" }
+});
+```
+
+Suffixed names reach Firebase + Facebook only. **Adjust ignores the suffix** because tokens must be pre-registered — the unsuffixed base name (`level`) is what hits Adjust via `eventMap`.
+
+## Implementation guide — Game stage tracking
+
+Bracket each level with `game_stage_start` / `game_stage_complete`. The SDK auto-attaches `current_stage_level` and `current_stage_mode` to **every other custom event** while a stage is active, so you can filter `item_purchased`, `ad_watched`, etc. by level without adding extra fields.
+
+```csharp
+// On level enter
+Noctua.Event.TrackCustomEvent("game_stage_start", new()
+{
+    { "level",      "5"    },
+    { "stage_mode", "hard" }   // optional
+});
+
+// On level clear — SDK adds stage_time_msec automatically
+Noctua.Event.TrackCustomEvent("game_stage_complete", new()
+{
+    { "level", "5" }
+});
+```
+
+**Behaviours**
+- `stage_time_msec` only attaches if `game_stage_start` ran in the same session (no cross-session timing).
+- `current_stage_level` / `current_stage_mode` persist across app restarts (PlayerPrefs-backed) — they remain attached to **all events** until the next `game_stage_start` with a different level.
+- Do **not** pass `stage_time_msec` manually — the SDK computes it.
+
+## Implementation guide — Feature engagement (per-screen time)
+
+`SetCurrentFeature` records time spent on a screen and emits `feature_engagement` **when the player leaves**. Add two lines to every scene script:
+
+```csharp
+public class ShopScene : MonoBehaviour
+{
+    private void Start()     => Noctua.Event.SetCurrentFeature("Shop");
+    private void OnDestroy() => Noctua.Event.SetCurrentFeature(string.Empty);
+}
+```
+
+Unity calls outgoing scene `OnDestroy` before incoming `Start`, so `feature_engagement` fires automatically on every transition.
+
+**Behaviour table**
+
+| Action | Fires `feature_engagement`? |
+|---|---|
+| `SetCurrentFeature("B")` while on `"A"` | Yes — for `A` |
+| `SetCurrentFeature(string.Empty)` while on `"A"` | Yes — for `A` |
+| `SetCurrentFeature("A")` with no previous feature | No |
+| `SetCurrentFeature("A")` while already on `"A"` | Yes — closes current visit, opens new one |
+| App killed mid-session | No — always clear in `OnDestroy` |
+
+**Event payload:** `{ feature_tag, feature_time_msec, feature_visit_id }`. Each visit gets a unique `feature_visit_id` so repeat visits to the same screen analyse as distinct rows. Use PascalCase names matching scene names (`MainMenu`, `Battle`, `Shop`, `Inventory`) — not `scr1` / `screen_3`.
+
+## Implementation guide — Tracking ad revenue from a raw mediator
+
+The Noctua IAA module already auto-tracks AppLovin MAX + AdMob revenue. Call `TrackAdRevenue` only when you mediate **outside** Noctua's pipeline — e.g. a custom offerwall, a house-ads SDK, or a network not on Noctua's adapter list.
+
+`source` argument:
+- `"applovin_max_sdk"` — for AppLovin's `OnAdRevenuePaidEvent`
+- `"admob_sdk"` — for AdMob's `OnPaidEvent`
+- Free-form for custom networks (e.g. `"custom_offerwall"`)
+
+```csharp
+// AppLovin MAX raw subscription
+MaxSdkCallbacks.Rewarded.OnAdRevenuePaidEvent += (adUnitId, info) =>
+{
+    Noctua.Event.TrackAdRevenue("applovin_max_sdk", info.Revenue, "USD",
+        new Dictionary<string, object>
+        {
+            { "platform", "AppLovin" },
+            { "networkSource", info.NetworkName },
+            { "adFormat", info.Placement }
+        });
+};
+
+// AdMob raw subscription
+private void HandleAdPaidEvent(AdValue adValue)
+{
+    double revenue = adValue.Value / 1_000_000.0;   // micros → units
+    var resp = rewardedAd.GetResponseInfo();
+    var loaded = resp.GetLoadedAdapterResponseInfo();
+
+    Noctua.Event.TrackAdRevenue("admob_sdk", revenue, adValue.CurrencyCode,
+        new Dictionary<string, object>
+        {
+            { "latencyMillis", loaded.LatencyMillis },
+            { "adSourceName",  loaded.AdSourceName }
+        });
+}
+```
+
+`TrackCustomEventWithRevenue` is the same idea but lets you choose any event name (`ad_impression`, `ad_revenue`, etc.) and ensures the revenue surfaces in Adjust as well as Firebase + Facebook.
+
+## Reference — built-in analytics emitted automatically
+
+The SDK auto-emits a comprehensive analytics surface once `InitAsync` succeeds. Full schema at https://docs.noctua.gg/docs/unity/tracking/built-in-analytics. **Never re-emit any of these manually** — duplicate counts cause dashboard skew across Firebase / Adjust / Facebook / Noctua simultaneously:
+
+| Category | Events |
+|---|---|
+| **Init / session** | `sdk_init_start`, `game_platform_type`, `session_start`, `session_pause`, `session_continue`, `session_heartbeat`, `session_end`, `noctua_user_engagement`, `noctua_user_engagement_per_session`, `native_user_engagement` |
+| **Auth** | `login`, `logout`, account state transitions |
+| **IAP** | `purchase`, `first_purchase` (per-device once) |
+| **IAA load / show / revenue** | `wf_<format>_request_*`, `ad_loaded`, `ad_load_failed`, `ad_shown`, `ad_shown_failed`, `ad_clicked`, `ad_closed`, `ad_impression`, `ad_impression_<format>`, `reward_earned`, banner-specific `wf_banner_*` / `ad_expanded` / `ad_collapsed` (see [iaa-event-schema.md](iaa-event-schema.md)) |
+| **Ad-watch milestones** | `watch_ads_0`, `watch_ads_1x`, `watch_ads_5x`, `watch_ads_10x`, `watch_ads_25x`, `watch_ads_50x` |
+| **Taichi tROAS** | `taichi_total_ad_impression`, `taichi_interstitial_ad_impression`, `taichi_rewarded_ad_impression`, `taichi_rewarded_ad_revenue`, `Total_Ads_Revenue_001`, `TenAdsShown` |
+| **Errors** (since 0.109.0) | `client_error` (managed + native) — see [error-handling.md](error-handling.md#client_error-event-auto-emitted) |
+| **Game stage / engagement** | `feature_engagement` (from `SetCurrentFeature`) |

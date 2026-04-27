@@ -36,24 +36,27 @@ Every API, config field, and file path in this skill is verified against the SDK
 
 | User task | Open reference |
 |---|---|
-| "How do I install it?" | [installation.md](references/installation.md) |
+| "How do I install it?" / Unity / iOS / Android prerequisites / ATT / camera | [installation.md](references/installation.md) |
 | "What goes in noctuagg.json?" | [noctuagg-json.md](references/noctuagg-json.md) |
-| "How do I initialize?" / "Noctua init error" | [initialization.md](references/initialization.md) |
-| Login / logout / switch account / social | [authentication.md](references/authentication.md) |
-| Buy products / IAP pending / redeem codes | [iap.md](references/iap.md) |
-| Track custom events / purchase / ad revenue | [events.md](references/events.md) |
-| Show banner/interstitial/rewarded/app-open ad | [iaa-ads.md](references/iaa-ads.md) |
+| "How do I initialize?" / Noctua init error / pre-launch checklist / offline-auth pattern | [initialization.md](references/initialization.md) |
+| Pre-launch checklist (single page) — store-side prereqs, build patches, test plan | [integration-checklist.md](references/integration-checklist.md) |
+| Login / logout / switch account / cloud save / banned-user / JWKS validation | [authentication.md](references/authentication.md) |
+| Buy products / IAP pending / restore / refund / Noctua Gold / redeem / webhooks | [iap.md](references/iap.md) |
+| Custom events / `eventMap` / feature engagement / game stage / ad revenue / built-in analytics | [events.md](references/events.md) |
+| Show banner/interstitial/rewarded/app-open / adapter install / hybrid fallback / main-thread | [iaa-ads.md](references/iaa-ads.md) |
 | `ad_loaded` / `ad_impression` / `wf_*` schema | [iaa-event-schema.md](references/iaa-event-schema.md) |
-| Firebase IDs / Remote Config / Adjust attribution / push notifications | [firebase-and-push.md](references/firebase-and-push.md) |
-| Announcement / customer service / locale | [platform-features.md](references/platform-features.md) |
-| In-app review / app update | [app-manager.md](references/app-manager.md) |
+| Firebase IDs / Remote Config / Adjust attribution / push setup / FCM test from Console / pseudo user ID | [firebase-and-push.md](references/firebase-and-push.md) |
+| Announcement / customer service / reward / social media / locale change / receive-rewards webhook | [platform-features.md](references/platform-features.md) |
+| In-app review / app update (immediate / flexible) | [app-manager.md](references/app-manager.md) |
+| Offline-first behaviour / connectivity API / offline auth recovery | [offline-first.md](references/offline-first.md) |
 | Android manifest / gradle / permissions | [android-setup.md](references/android-setup.md) |
 | iOS Info.plist / SKAdNetworks / CocoaPods | [ios-setup.md](references/ios-setup.md) |
 | Integration Manager / CocoaPods fixer | [editor-tooling.md](references/editor-tooling.md) |
-| Debugging in sandbox (inspector overlay) | [sandbox-inspector.md](references/sandbox-inspector.md) |
+| Sandbox Inspector overlay / Trackers tab / log filters / Taichi / SDK log retrieval | [sandbox-inspector.md](references/sandbox-inspector.md) |
 | `NoctuaException`, error codes, try/catch | [error-handling.md](references/error-handling.md) |
 | `session_*` events, engagement time | [session-tracking.md](references/session-tracking.md) |
 | A/B experiments, segments, CPM floors | [experiments.md](references/experiments.md) |
+| Native (Android / iOS) event tracking — when Unity facade isn't enough | [native-event-tracking.md](references/native-event-tracking.md) |
 | Full public API list | [api-reference.md](references/api-reference.md) |
 
 ## Sources to share with game devs

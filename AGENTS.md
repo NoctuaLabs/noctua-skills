@@ -30,24 +30,27 @@ Activate this guidance when the user mentions any of:
 
 | Topic | File |
 |---|---|
-| Install via UPM, native deps | [skills/noctua-unity-sdk/references/installation.md](skills/noctua-unity-sdk/references/installation.md) |
+| Install via UPM, native deps, ATT, camera, PlayerPrefs reserved keys | [skills/noctua-unity-sdk/references/installation.md](skills/noctua-unity-sdk/references/installation.md) |
 | `noctuagg.json` full schema + template | [skills/noctua-unity-sdk/references/noctuagg-json.md](skills/noctua-unity-sdk/references/noctuagg-json.md) |
-| `Noctua.InitAsync` bootstrap flow | [skills/noctua-unity-sdk/references/initialization.md](skills/noctua-unity-sdk/references/initialization.md) |
-| `Noctua.Auth` — login, social, account | [skills/noctua-unity-sdk/references/authentication.md](skills/noctua-unity-sdk/references/authentication.md) |
-| `Noctua.IAP` — products, purchase, pending | [skills/noctua-unity-sdk/references/iap.md](skills/noctua-unity-sdk/references/iap.md) |
-| `Noctua.Event` — custom events, revenue | [skills/noctua-unity-sdk/references/events.md](skills/noctua-unity-sdk/references/events.md) |
-| `Noctua.IAA` — ads (banner/interstitial/rewarded/app-open) | [skills/noctua-unity-sdk/references/iaa-ads.md](skills/noctua-unity-sdk/references/iaa-ads.md) |
+| `Noctua.InitAsync` bootstrap flow + pre-launch checklist + offline-auth pattern | [skills/noctua-unity-sdk/references/initialization.md](skills/noctua-unity-sdk/references/initialization.md) |
+| Pre-launch checklist (single page) — store-side prereqs, build patches, test plan | [skills/noctua-unity-sdk/references/integration-checklist.md](skills/noctua-unity-sdk/references/integration-checklist.md) |
+| `Noctua.Auth` — login, social, switch account, cloud `GameState`, JWKS validation, banned-user handling | [skills/noctua-unity-sdk/references/authentication.md](skills/noctua-unity-sdk/references/authentication.md) |
+| `Noctua.IAP` — products, purchase, pending, restore, refund, Noctua Gold, redeem, server-delivery webhook | [skills/noctua-unity-sdk/references/iap.md](skills/noctua-unity-sdk/references/iap.md) |
+| `Noctua.Event` — custom events, `eventMap`, feature engagement, game stage, ad/purchase revenue, built-in analytics catalogue | [skills/noctua-unity-sdk/references/events.md](skills/noctua-unity-sdk/references/events.md) |
+| `Noctua.IAA` — banner/interstitial/rewarded/app-open, adapter installation, hybrid fallback, main-thread safety | [skills/noctua-unity-sdk/references/iaa-ads.md](skills/noctua-unity-sdk/references/iaa-ads.md) |
 | Canonical IAA event schema (`ad_loaded`, `ad_impression`, `wf_*`, `watch_ads_*`, Taichi) | [skills/noctua-unity-sdk/references/iaa-event-schema.md](skills/noctua-unity-sdk/references/iaa-event-schema.md) |
-| `Noctua.Platform` — locale, web content | [skills/noctua-unity-sdk/references/platform-features.md](skills/noctua-unity-sdk/references/platform-features.md) |
-| `Noctua.App` — in-app review, updates | [skills/noctua-unity-sdk/references/app-manager.md](skills/noctua-unity-sdk/references/app-manager.md) |
-| Firebase / Adjust attribution / push notifications (`Noctua.GetFirebase*`, `OnRemoteNotificationReceived`, `OnNotificationTapped`, FCM token) | [skills/noctua-unity-sdk/references/firebase-and-push.md](skills/noctua-unity-sdk/references/firebase-and-push.md) |
+| `Noctua.Platform` — locale, announcement, customer service, reward, social media, receive-rewards webhook | [skills/noctua-unity-sdk/references/platform-features.md](skills/noctua-unity-sdk/references/platform-features.md) |
+| `Noctua.App` — in-app review, immediate / flexible updates | [skills/noctua-unity-sdk/references/app-manager.md](skills/noctua-unity-sdk/references/app-manager.md) |
+| Offline-first behaviour matrix, connectivity API, offline-auth recovery | [skills/noctua-unity-sdk/references/offline-first.md](skills/noctua-unity-sdk/references/offline-first.md) |
+| Firebase / Adjust attribution / push notifications / FCM Console test / pseudo user ID | [skills/noctua-unity-sdk/references/firebase-and-push.md](skills/noctua-unity-sdk/references/firebase-and-push.md) |
 | A/B experiments, user segments, CPM floors | [skills/noctua-unity-sdk/references/experiments.md](skills/noctua-unity-sdk/references/experiments.md) |
 | Android build setup | [skills/noctua-unity-sdk/references/android-setup.md](skills/noctua-unity-sdk/references/android-setup.md) |
 | iOS build setup (SKAdNetworks, CocoaPods) | [skills/noctua-unity-sdk/references/ios-setup.md](skills/noctua-unity-sdk/references/ios-setup.md) |
 | Editor menu tooling | [skills/noctua-unity-sdk/references/editor-tooling.md](skills/noctua-unity-sdk/references/editor-tooling.md) |
-| Noctua Inspector (sandbox debug overlay) | [skills/noctua-unity-sdk/references/sandbox-inspector.md](skills/noctua-unity-sdk/references/sandbox-inspector.md) |
+| Sandbox Inspector overlay, Trackers tab, log filters, Taichi verification, SDK log retrieval | [skills/noctua-unity-sdk/references/sandbox-inspector.md](skills/noctua-unity-sdk/references/sandbox-inspector.md) |
 | Error handling (`NoctuaException`) | [skills/noctua-unity-sdk/references/error-handling.md](skills/noctua-unity-sdk/references/error-handling.md) |
 | Session & engagement tracking | [skills/noctua-unity-sdk/references/session-tracking.md](skills/noctua-unity-sdk/references/session-tracking.md) |
+| Native (Android / iOS) event tracking — when Unity facade isn't enough | [skills/noctua-unity-sdk/references/native-event-tracking.md](skills/noctua-unity-sdk/references/native-event-tracking.md) |
 | Full public API index + types | [skills/noctua-unity-sdk/references/api-reference.md](skills/noctua-unity-sdk/references/api-reference.md) |
 
 ## Minimal working sample

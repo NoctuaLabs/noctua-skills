@@ -1,6 +1,6 @@
 # Initialization
 
-> **Sources** — Official API: https://docs.noctua.gg/sdk/noctua · Repo: [Runtime/View/Noctua.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/View/Noctua.cs), [Runtime/View/Noctua.Initialization.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/View/Noctua.Initialization.cs)
+> **Sources** — Official API: https://docs.noctua.gg/sdk/noctua · Tutorials: https://docs.noctua.gg/docs/installation, /integration-checklist, /unity/offline-first-guide · Repo: [Runtime/View/Noctua.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/View/Noctua.cs), [Runtime/View/Noctua.Initialization.cs](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Runtime/View/Noctua.Initialization.cs)
 
 The SDK is initialized once per app lifetime, typically in a **Splash** scene before loading gameplay.
 
@@ -139,3 +139,110 @@ Captured automatically, no game code required:
 ## From the sample
 
 See `Assets/SplashScript.cs` in the sample app for a production-style bootstrap with progress UI and scene transition.
+
+## Implementation guide — offline-first init retry
+
+When `noctuagg.json → noctua.offlineFirstEnabled` is `true`, the SDK auto-retries init **every 5 seconds** while the device is offline, until success. Game code does not need to schedule retries; subscribe to `OnInitSuccess` to react when the SDK finally connects:
+
+```csharp
+Noctua.OnInitSuccess += () =>
+{
+    Debug.Log("Noctua SDK initialized successfully");
+    // Refresh feature flags, trigger any "online-only" UI here
+};
+```
+
+If `InitAsync` raises an exception (genuine failure — bad config, parse error), the SDK surfaces it via the catch block. **Block the player from proceeding** — show an error dialog suggesting restart / retry; do not allow them into gameplay if init genuinely failed (per https://docs.noctua.gg/docs/installation#sdk-initialization).
+
+## Implementation guide — handling offline auth
+
+`AuthenticateAsync` throws a networking-flavoured exception when the device is offline. Catch and continue — events are still buffered locally and flushed on reconnect:
+
+```csharp
+try
+{
+    var bundle = await Noctua.Auth.AuthenticateAsync();
+    // bundle.Player.Id may be 0 / null in offline-first recovery — intentional.
+    // Skip server-side pairing (UpdatePlayerAccountAsync, etc.) when that happens.
+}
+catch (Exception e) when (e.Message.Contains("Networking"))
+{
+    Noctua.Event.TrackCustomEvent("login");   // buffered, flushes on reconnect
+    // Continue to gameplay
+}
+```
+
+What works / what doesn't while offline:
+
+| Surface | Behaviour |
+|---|---|
+| `Noctua.InitAsync()` | Succeeds (offline-first), session marked offline. Genuine exceptions are NOT network errors. |
+| `Noctua.Auth.AuthenticateAsync()` | Throws — catch the networking exception, continue |
+| `Noctua.Event.Track*` | Works — events buffered locally, flushed on reconnect |
+| `Noctua.IAP.*` | Blocked — SDK shows its own reconnect dialog automatically |
+| `Noctua.Platform.Content.Show*` (announcement / customer service / reward) | Blocked — SDK shows reconnect dialog automatically |
+
+## Implementation guide — placement of the bootstrap GameObject
+
+Per https://docs.noctua.gg/docs/installation, attach the initializer to a GameObject in **every initial scene** (the scene that loads first when the game launches). Naming the object `NoctuaSDKInitializer` is conventional but not required. The initializer must stay alive for the full game session — do not put `OnPurchaseDone` / `OnInitSuccess` subscriptions in a class with a shorter lifetime, or pending purchases that arrive later in the session will fail to deliver.
+
+## Implementation guide — pre-launch checklist
+
+Run through this on a real device (not the Unity Editor) before submission. Sourced from https://docs.noctua.gg/docs/integration-checklist:
+
+### Setup
+- SDK version matches the latest stable release (`Packages/com.noctuagames.sdk/package.json`)
+- `noctuagg.json` in `Assets/StreamingAssets/` has **production** credentials (confirm with Noctua team)
+- `Application.version` is a SemVer string
+- Android: `minSdkVersion ≥ 28`, `targetSdkVersion = 35` (mandatory Aug 2025+)
+- iOS: deployment target ≥ 15, Xcode ≥ 16.0
+- `Noctua.InitAsync()` is awaited at startup before any other SDK call
+- No PlayerPrefs keys with `Noctua` prefix or `NativeGalleryPermission` are wiped by game code
+
+### Authentication
+- `AuthenticateAsync` returns a valid `UserBundle` on first launch
+- Guest login works on a fresh install
+- Social login (Google / Apple / Facebook) returns a full account
+- Linking guest → social upgrades without data loss
+- `ShowUserCenter` switch fires `OnAccountChanged`
+- `OnAccountChanged` updates HUD / UI bound to player identity
+- App resume after background: token auto-refreshes, no re-login
+- **Offline:** `AuthenticateAsync` in airplane mode returns cached session (or throws cleanly) — does not crash
+
+### In-App Ads
+- AdMob and/or AppLovin installed via Integration Manager
+- App IDs / Ad Unit IDs come from Remote Config — never hardcoded
+- `UNITY_ADMOB` / `UNITY_APPLOVIN` defines auto-set
+- Banner / interstitial / rewarded / app-open all show + dismiss correctly on device
+- `OnAdNotAvailable` AND `OnAdFailedDisplayed` both reset reward-pending state
+- ATT prompt appears **before** the first ad request (iOS)
+- App still runs and shows ads when ATT is denied
+- Test device IDs removed before release; no "Test Ad" watermark in production build
+
+### In-App Purchase
+- SKUs in Play Console + App Store Connect match the IDs in game code
+- `GetProductListAsync` returns localized prices
+- Purchase round-trip: `PurchaseItemAsync` → `OnPurchaseDone` fires → item delivered
+- Cancellation and network failure surface user-facing messages
+- iOS Restore Purchases works for non-consumables
+- Noctua Gold balance displays correctly (if used)
+
+### Event Tracking
+- At least one custom event reaches **Firebase DebugView**
+- Revenue events fire on purchase with correct currency
+- `SetCurrentFeature` is wired in the gameplay scene scripts (if used)
+
+### Platform Features
+- `ShowAnnouncement` opens and renders content
+- `ShowCustomerService` opens without errors
+- `ShowReward` loads (if enabled)
+- Deep links from announcements navigate to the right in-game destination
+
+### Final submission gates
+- All `Debug.Log` exposing tokens / user IDs removed or guarded
+- `SetTestDeviceIds` cleared
+- `noctuagg.json` has production `clientId` (not staging / sandbox)
+- iOS: `NSUserTrackingUsageDescription` in `Info.plist`
+- Android: `targetSdkVersion = 35`
+- Tested on real Android + real iPhone (not just Editor / emulator)
+- Clean install test: uninstall → reinstall → verify no first-launch crash

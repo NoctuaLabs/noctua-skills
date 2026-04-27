@@ -168,7 +168,7 @@ try
 }
 catch (NoctuaException nex)
 {
-    switch (nex.ErrorCode)
+    switch ((NoctuaErrorCode)nex.ErrorCode)
     {
         case NoctuaErrorCode.UserBanned:
             ShowBannedDialog(nex.Message); break;
@@ -187,7 +187,7 @@ catch (Exception e)
 ## Types referenced
 
 - `UserBundle` — `{ Player, Credential, AccessToken, ... }`
-- `Player` — `{ Id, Nickname, Picture, ... }`
+- `Player` — `{ Id, UserId, GameId, AccessToken, Nickname, AvatarUrl }`
 - `Credential` — linked credential descriptor
 - `CredentialVerification` — `{ Id, Method }` returned by email registration/linking/reset
 - `PlayerToken` — short-lived token returned after password reset
@@ -203,3 +203,161 @@ When `Noctua.IsOfflineMode()` is `true`:
 - `AuthenticateAsync()` returns the cached `RecentAccount` if available
 - `ShowUserCenter()` shows a retry dialog instead of opening the UI
 - All calls that require server verification throw `NoctuaException(Authentication)`
+
+## Implementation guide — first-launch flow
+
+The canonical first-launch sequence (per https://docs.noctua.gg/docs/unity/authentication/integrate-noctua-account):
+
+```csharp
+using com.noctuagames.sdk;
+using Cysharp.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class AuthenticationManager : MonoBehaviour
+{
+    private void Awake() => StartCoroutine(Authenticate().ToCoroutine());
+
+    private async UniTask Authenticate()
+    {
+        try
+        {
+            var bundle = await Noctua.Auth.AuthenticateAsync();
+            // Player.Id is GUARANTEED unique per user per game — use it for analytics keys.
+            var playerId = bundle.Player.Id;
+            Debug.Log($"PlayerId: {playerId}");
+        }
+        catch (Exception e) when (e is NoctuaException nex)
+        {
+            // Banned-user code is 2202 — block access to gameplay.
+            if (nex.ErrorCode == 2202) return;
+            Debug.LogError($"Auth {nex.ErrorCode}: {nex.Message}");
+            return;
+        }
+
+        // Update RoleId / ServerId once the in-game UID is generated.
+        await Noctua.Auth.UpdatePlayerAccountAsync(new PlayerAccountData
+        {
+            IngameUsername = "CoolGamer123",
+            IngameServerId = "Server001",
+            IngameRoleId   = "Role789",
+            Extra = new Dictionary<string, string>
+            {
+                { "level", "42" },
+                { "xp", "9876" }
+            }
+        });
+    }
+}
+```
+
+`AuthenticateAsync` handles guest auto-create and returning-player auto-login transparently — game code does not branch on user type. A welcome toast is shown by the SDK on first authentication.
+
+### Banned users — error code 2202
+
+```csharp
+try { await Noctua.Auth.AuthenticateAsync(); }
+catch (NoctuaException nex) when (nex.ErrorCode == 2202)
+{
+    // SDK already showed the banned dialog and the exception fires after the user
+    // dismisses it. Prevent the player from entering gameplay — do NOT load the
+    // home scene, do NOT call gameplay APIs.
+    return;
+}
+```
+
+### `UpdatePlayerAccountAsync` — when to call
+
+Call after each of these transitions (per https://docs.noctua.gg/docs/unity/authentication/updating-player-account):
+
+1. **First entry to the game** — after `AuthenticateAsync` and once the in-game `RoleId` is generated.
+2. **Login / logout** — every account change.
+3. **Server hops** — player switches in-game shard / region.
+4. **Profile updates** — nickname change.
+5. **Before any IAP** — ensures the purchase is associated with the current role.
+
+The `Extra` dictionary is for identification metadata only (level, VIP tier). Do **not** push transient game state into it — that is the role of cloud `GameState`.
+
+## Implementation guide — Switch Account & User Center
+
+```csharp
+// Switch Account button — opens the SDK's account picker UI
+public void OnSwitchAccountTapped() => Noctua.Auth.SwitchAccount();
+
+// User Center button — full account management UI (profile, link providers, delete)
+public async void OnUserCenterTapped()
+{
+    try { await Noctua.Auth.ShowUserCenter(); }
+    catch (NoctuaException nex) { Debug.LogError($"UserCenter {nex.ErrorCode}: {nex.Message}"); }
+}
+```
+
+Both APIs throw `NoctuaException(Application)` if the SDK is offline or `Auth` URLs are missing in `noctuagg.json`.
+
+## Implementation guide — Account change & deletion events
+
+Wire these BEFORE `Noctua.InitAsync()`:
+
+```csharp
+Noctua.Auth.OnAccountChanged += bundle =>
+{
+    // Fires on login, logout, AND switch-account. bundle is null on logout.
+    Debug.Log(bundle == null
+        ? "Logged out"
+        : $"Now active: Player {bundle.Player.Id}");
+    RefreshHudForPlayer(bundle?.Player);
+};
+
+Noctua.Auth.OnAccountDeleted += player =>
+{
+    // User-initiated deletion — clear LOCAL save, surface a "goodbye" screen,
+    // then call AuthenticateAsync() again to provision a fresh guest if needed.
+    Debug.Log($"Deleted player: {player.Id}");
+    LocalSave.Wipe();
+};
+```
+
+## Implementation guide — Cloud `GameState`
+
+Use cloud save for cross-device progress that should follow the player's Noctua account (per https://docs.noctua.gg/docs/unity/authentication/cloud-game-state):
+
+```csharp
+[Serializable]
+public class PlayerProgress
+{
+    public int level;
+    public int score;
+    public string lastCheckpoint;
+}
+
+public async UniTask SaveProgress(PlayerProgress p)
+{
+    string json = JsonUtility.ToJson(p);
+    await Noctua.Auth.SaveGameState("player_progress", json);
+}
+
+public async UniTask<PlayerProgress> LoadProgress()
+{
+    string json = await Noctua.Auth.LoadGameState("player_progress");
+    if (string.IsNullOrEmpty(json)) return null;
+    return JsonUtility.FromJson<PlayerProgress>(json);
+}
+```
+
+- Keys: `^[a-zA-Z0-9_\-\.]{1,128}$` — letters, numbers, underscore, hyphen, dot. Examples: `progress_slot_1`, `settings.audio`, `inventory-data`.
+- Values are arbitrary strings — JSON-serialise complex structures yourself.
+- Auth is required; calls throw `NoctuaException(Authentication)` if the player isn't signed in.
+- Storage is per **player per game** — no cross-game data sharing.
+
+## Implementation guide — Server-side access-token validation
+
+If your backend accepts player-authenticated requests, validate the token cryptographically rather than re-querying Noctua:
+
+1. Client passes `bundle.Player.AccessToken` (a JWT signed by Noctua) to your backend.
+2. Backend fetches JWKS from `https://sdk-api-v2.noctuaprojects.com/api/v1/auth/jwks` (cache it — ES256 keys rotate rarely).
+3. Verify the JWT signature with the matching `kid`. The decoded payload identifies the user.
+
+See https://docs.noctua.gg/docs/unity/authentication/integrate-noctua-account#validation-process for full PHP / Node.js examples (jose, jwks-rsa).
+
+Same JWKS verifies IAP / reward webhook `signed_data` payloads — see [iap.md](iap.md#server-delivery-webhook).

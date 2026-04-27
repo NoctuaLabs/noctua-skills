@@ -325,7 +325,7 @@ Field lists below match https://docs.noctua.gg/sdk/types.
 | `OrderStatus` | enum: `pending`, `verification_failed`, `completed`, `canceled`, `refunded`, `voided`, `unknown` |
 | `InternalPurchaseItem` | `OrderId`, `ProductId`, `Status`, `Timestamp`, `ReceiptData` |
 | `PaymentType` | enum: `unknown`, `playstore`, `appstore`, `direct`, `noctuawallet`, `noctuagold`, `editor` |
-| `NoctuaGoldData` | `Balance`, `Currency`, `UpdatedAt` |
+| `NoctuaGoldData` | `{ VipLevel, GoldAmount, BoundGoldAmount, TotalGoldAmount, EligibleGoldAmount }` — all `double`. Verified against `Runtime/Model/DTOs/IAPModels.cs`. Use `EligibleGoldAmount` for the current purchase context. |
 | `PendingDeliverables` | `OrderId`, `Data : PendingDeliverablesData`, `CreatedAt` |
 | `ClaimRedeemCodeResponse` | `OrderIds : List<…>`, `Message` |
 | `ProductPurchaseStatus` | `IsPurchased`, `ExpiryTime` (iOS only; Android = 0), `IsAutoRenewing`, `OriginalPurchaseTime` |
@@ -339,8 +339,8 @@ Field lists below match https://docs.noctua.gg/sdk/types.
 ### App
 | Type | Fields / values |
 |---|---|
-| `AppUpdateInfo` | `IsUpdateAvailable`, `UpdatePriority` (0–5), `AvailableVersionCode`, `IsImmediateUpdateAllowed`, `IsFlexibleUpdateAllowed` |
-| `AppUpdateResult` | enum: `NotAvailable`, `Completed`, `Canceled`, `Failed`, `InProgress` |
+| `AppUpdateInfo` | `{ IsUpdateAvailable, IsImmediateAllowed, IsFlexibleAllowed, AvailableVersionCode, StalenessDays }` (verified against `Runtime/Model/DTOs/AppUpdateInfo.cs`) |
+| `AppUpdateResult` | enum (`Runtime/Model/DTOs/AppUpdateInfo.cs`): `Success=0`, `UserCancelled=1`, `Failed=2`, `NotAvailable=3` |
 
 ### Locale
 | Type | Notes |

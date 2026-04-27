@@ -1,6 +1,6 @@
 # Installation
 
-> **Sources** — Official: https://docs.noctua.gg/docs/installation · https://docs.noctua.gg/docs/integration-checklist · Repo: [package.json](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/package.json), [Editor/Dependencies/NativePluginDependencies.xml](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Editor/Dependencies/NativePluginDependencies.xml)
+> **Sources** — Official: https://docs.noctua.gg/docs/installation · https://docs.noctua.gg/docs/usage-requirements · https://docs.noctua.gg/docs/integration-checklist · https://docs.noctua.gg/docs/introduction · Repo: [package.json](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/package.json), [Editor/Dependencies/NativePluginDependencies.xml](https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/Editor/Dependencies/NativePluginDependencies.xml)
 
 Noctua SDK is a Unity Package Manager (UPM) git package. No .unitypackage download.
 
@@ -103,3 +103,86 @@ If init fails, check `Assets/StreamingAssets/noctuagg.json` exists and is valid 
 ## Upgrading
 
 Bump the fragment in `manifest.json` to the new tag (`#0.110.0` etc.), then `Packages > UnityEditor.PackageManager > Refresh`. Re-run `Force Resolve` (Android) / next build (iOS). Check `Packages/com.noctuagames.sdk/CHANGELOG.md` for breaking changes.
+
+## Implementation guide — Unity Package Manager (recommended)
+
+Per the official tutorial, the canonical end-user flow is:
+
+1. **Window → Package Manager** in Unity.
+2. Click the **`+`** button → **Add package from git URL…**.
+3. (Skip if EDM4U is already installed) Add Google's External Dependency Manager:
+   ```
+   https://github.com/googlesamples/unity-jar-resolver.git?path=upm
+   ```
+4. Add the Noctua SDK:
+   ```
+   https://github.com/NoctuaLabs/noctua-unity-sdk-upm.git
+   ```
+   Append `#x.y.z` to pin a version (e.g. `#0.109.0`). Omitting the fragment resolves to the default branch — not recommended for production.
+
+The Noctua team provides `noctuagg.json` plus any third-party config (`google-services.json`, `GoogleService-Info.plist`) — drop them into `Assets/StreamingAssets/`.
+
+### iOS Resolver settings
+
+Open **Assets → External Dependency Manager → iOS Resolver → Settings** and confirm **Cocoapods Integration** is set to add the iOS dependencies on build. The resolver runs `pod install` automatically when you Build from Unity.
+
+## Implementation guide — App Tracking Transparency (iOS)
+
+The Noctua SDK requires the ATT permission flow on iOS for ad attribution. Add `NSUserTrackingUsageDescription` to `Info.plist` (the SDK injects a default at build time but you can override) and prompt the user via Unity's `iOSDevice.RequestATTAuthorization` (or any equivalent native bridge) **before** the first ad request:
+
+> Reference: https://docs.unity.com/en-us/grow/ads/ios-sdk/ios14/att-compliance
+
+The game must continue to load and serve ads even when the ATT prompt is denied — the SDK degrades attribution but does not refuse to show ads.
+
+## Implementation guide — `NSCameraUsageDescription` (iOS)
+
+The customer-service / bug-report flow can ask for a screenshot, which on iOS triggers a camera permission check. Add to `Info.plist`:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>The camera is used to capture screenshots for bug reports and customer support.</string>
+```
+
+iOS will crash the app on access if this key is missing, even when the user never invokes the screenshot path. Include it on every build.
+
+## Platform versions and dependencies (verified Apr 2026)
+
+From https://docs.noctua.gg/docs/usage-requirements:
+
+- **Unity:** 2022.3.62f2 LTS or 6000.3.6f1 LTS (team-supported floor; `package.json` declares `2021.3` because UPM only enforces a major-version minimum).
+- **Android:** OS 9 (Pie) minimum; `targetSdkVersion = 35` (mandatory for Play Console submissions from August 2025); `minSdkVersion ≥ 28` for new submissions.
+- **iOS:** deployment target 15.0; Xcode 16.0+.
+- **Gradle:** 8.6.0+, JDK 17+, Android Gradle Plugin 8.4.0+.
+- **`Application.version`:** mandatory — must be a SemVer string (Edit → Project Settings → Player → Version).
+
+### Native iOS dependency versions (Noctua-bundled)
+
+The SDK already bundles Firebase / Adjust / Facebook on iOS. If your game also pulls these in directly, **versions must match exactly** — mismatches cause symbol/linker conflicts. Android has no such restriction.
+
+| iOS SDK | Version |
+|---|---|
+| Adjust | 5.4.4 |
+| Firebase | 12.2.0 (Unity Firebase SDK 13.2.0) |
+| Facebook | 18.0.0 (Unity Facebook SDK 18.0.0) |
+
+## PlayerPrefs keys reserved by the SDK
+
+The SDK persists state in PlayerPrefs. **Do not delete these keys** in a "reset save" flow — the list is from https://docs.noctua.gg/docs/usage-requirements:
+
+- `NoctuaFirstOpen`
+- `NoctuaAccountContainer.UseFallback`
+- `NativeGalleryPermission`
+- `NoctuaWebContent.Announcement.LastShown`
+- `NoctuaAccountContainer`
+- `NoctuaPendingPurchases`
+- `NoctuaLocaleCountry`
+- `NoctuaLocaleCurrency`
+- `NoctuaLocaleUserPrefsLanguage`
+- `NoctuaUnpairedOrders`
+- `NoctuaPurchaseHistory`
+- `NoctuaEvents`
+- `NoctuaAccessToken`
+- `NoctuaCurrentStageLevel`
+- `NoctuaCurrentStageMode`
+
+If your game wipes PlayerPrefs, exclude every key matching the `Noctua*` prefix and `NativeGalleryPermission`.
