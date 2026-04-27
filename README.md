@@ -78,6 +78,90 @@ Paste the contents of [`skills/noctua-unity-sdk/SKILL.md`](skills/noctua-unity-s
 
 Every API signature, config field, type, and file path is verified against three sources of truth: the official docs at <https://docs.noctua.gg/sdk>, the open-source UPM repo at <https://github.com/NoctuaLabs/noctua-unity-sdk-upm>, and the C# DTOs. No hallucinations. Each reference file opens with a `> **Sources**` block linking the matching docs page and repo file(s) so the agent can cite them when answering.
 
+## Updating
+
+A `git push` to this repo updates the **remote** only — each game dev's local install needs to pull. Pick whichever update strategy matches how you installed the skill:
+
+### Personal install (symlink to local clone) — recommended
+
+The Claude Code symlink (`~/.claude/skills/noctua-unity-sdk` → your local clone) sees file changes immediately, so a single `git pull` is enough:
+
+```sh
+cd ~/src/noctua-skills && git pull --ff-only
+```
+
+To make this automatic, add either of the following:
+
+**Option A — pull on every new shell** (`~/.zshrc` or `~/.bashrc`):
+
+```sh
+( cd ~/src/noctua-skills && git pull --quiet --ff-only origin main &>/dev/null & )
+```
+
+Each new terminal refreshes the clone in the background.
+
+**Option B — daily cron** (`crontab -e`):
+
+```cron
+0 9 * * * cd ~/src/noctua-skills && git pull --ff-only origin main >/dev/null 2>&1
+```
+
+Pulls weekday mornings at 9am. Same idea works on Linux/macOS launchd.
+
+### Per-project install (git submodule)
+
+If you embedded the skill in your game repo as a submodule (the per-project Claude Code / Cursor pattern from above), bump the submodule pointer:
+
+```sh
+git submodule update --remote --merge .claude/vendor/noctua-skills
+git commit -am "chore: bump noctua-skills"
+```
+
+To automate, add a workflow to your **game** repo (not this one) that opens a weekly bump PR:
+
+```yaml
+# .github/workflows/bump-noctua-skills.yml
+name: Bump noctua-skills
+on:
+  schedule: [{cron: '0 9 * * 1'}]   # Mondays 09:00 UTC
+  workflow_dispatch:
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
+      - run: git submodule update --remote --merge .claude/vendor/noctua-skills
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          title: "chore: bump noctua-skills"
+          branch: bot/bump-noctua-skills
+          commit-message: "chore: bump noctua-skills"
+```
+
+The PR shows the changelog so reviewers can decide whether to merge.
+
+### Pinned to a tag (deterministic builds)
+
+For release branches or CI you may want the skill **frozen** to a specific commit. Tag releases of this repo (e.g. when the underlying Noctua SDK ships v0.110.0), then pin the submodule:
+
+```sh
+cd .claude/vendor/noctua-skills
+git fetch --tags
+git checkout v0.110.0
+cd -
+git commit -am "chore: pin noctua-skills to v0.110.0"
+```
+
+The skill won't move until you re-pin.
+
+### Other install methods
+
+- **Codex CLI / Aider / Copilot** (`cp AGENTS.md`): re-run the `cp` after `git pull`.
+- **Pasted into a system prompt**: re-paste manually.
+
+These methods are static copies — there's no symlink or submodule pointer to update.
+
 ## Contributing
 
 Issues and PRs welcome. See [`CLAUDE.md`](CLAUDE.md) for the maintainer playbook (sources of truth, golden rules, common workflows, verification grep snippets). The short version — when the Noctua Unity SDK ships a new version:
