@@ -70,7 +70,7 @@ Or point at this repo as a source and let the tool load `AGENTS.md` directly.
 
 Skip the symlink/submodule dance entirely — run the MCP once on a LAN host, point every teammate's Claude Code at the SSE URL, and your agent always sees the latest content + live SDK metadata.
 
-On one machine on the LAN (e.g. `172.16.8.237`):
+On one machine on the LAN:
 
 ```sh
 cd noctua-skills/mcp
@@ -86,7 +86,7 @@ In each teammate's Claude Code config:
   "mcpServers": {
     "noctua-sdk": {
       "type": "sse",
-      "url": "http://172.16.8.237:8000/sse"
+      "url": "http://<host-lan-ip>:8000/sse"
     }
   }
 }

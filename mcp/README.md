@@ -52,13 +52,13 @@ Then on each teammate's machine, in `~/.claude/settings.json` (or `~/.claude.jso
   "mcpServers": {
     "noctua-sdk": {
       "type": "sse",
-      "url": "http://172.16.8.237:8000/sse"
+      "url": "http://<host-lan-ip>:8000/sse"
     }
   }
 }
 ```
 
-Replace `172.16.8.237` with the host's LAN IP. Restart Claude Code.
+Replace `<host-lan-ip>` with the host machine's LAN IP (e.g. `ipconfig getifaddr en0` on macOS, `hostname -I` on Linux). Restart Claude Code.
 
 ## Run locally (stdio, single-machine dev)
 
