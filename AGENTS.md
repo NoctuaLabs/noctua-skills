@@ -6,6 +6,8 @@ This file briefs any AI coding agent (Cursor, Codex CLI, Aider, Copilot, Claude 
 
 **Sources** — Always cite the matching URL when answering: official API at https://docs.noctua.gg/sdk, tutorials at https://docs.noctua.gg/docs, open-source UPM repo at https://github.com/NoctuaLabs/noctua-unity-sdk-upm. Each `references/*.md` file in this skill opens with a `> **Sources**` block — copy those links into your replies rather than paraphrasing.
 
+**Live MCP available** — If your environment has the `noctua-sdk` MCP server configured (see [`mcp/README.md`](mcp/README.md)), prefer its tools (`get_sdk_version`, `get_changelog`, `get_api_reference(module)`, `get_noctuagg_schema`, `get_error_codes`, `get_<topic>`) over the static content here. They fetch live from the upstream repos and never drift.
+
 ## When this applies
 
 Activate this guidance when the user mentions any of:

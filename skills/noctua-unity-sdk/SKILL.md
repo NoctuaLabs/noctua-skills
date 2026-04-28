@@ -16,6 +16,22 @@ You are helping a game developer integrate the **Noctua Games Unity SDK** (`com.
 
 Every API, config field, and file path in this skill is verified against the SDK source. **Do not invent APIs.** If you need a detail that isn't covered here, say so and ask the user to share the relevant source file rather than guessing.
 
+## Live data via MCP (when available)
+
+If `noctua-sdk` is configured as an MCP server in this Claude Code instance, prefer its tools over the static content below for **anything version-sensitive** — they fetch live from the upstream repos and never drift:
+
+| Question | MCP tool |
+|---|---|
+| What version of the SDK is this? | `get_sdk_version` |
+| What changed since v0.109.0? | `get_changelog` (pass `since_version`) |
+| What's the exact `Noctua.Auth.*` API right now? | `get_api_reference("auth")` |
+| Is field `X` valid in `noctuagg.json`? | `get_noctuagg_schema` |
+| What error codes does `NoctuaException` raise? | `get_error_codes` |
+| How many SKAdNetwork IDs does the SDK inject? | `get_skadnetwork_ids` |
+| Latest content for topic `<name>`? | `get_<name>` (call `list_topics` to list them) |
+
+The static content in this file and `references/*.md` remains the durable guidance — concepts, walkthroughs, integration patterns. The MCP serves the same files **plus** live SDK metadata. See [mcp/README.md](../../mcp/README.md) in the noctua-skills repo for the connection URL.
+
 ## Quickstart
 
 1. **Install** via `Packages/manifest.json` → see [references/installation.md](references/installation.md)

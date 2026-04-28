@@ -16,4 +16,6 @@ Quickstart context (for trivial requests):
 
 If `$ARGUMENTS` is empty, present the table of contents from `SKILL.md` and ask which topic the user wants to dive into.
 
+**Live data** — If the `noctua-sdk` MCP server is configured in this Claude Code instance, prefer its tools (`get_sdk_version`, `get_changelog`, `get_api_reference(module)`, `get_noctuagg_schema`, `get_error_codes`, `get_<topic>`) over the static skill content for any version-sensitive answer. They fetch live from upstream and never drift. See [`mcp/README.md`](../mcp/README.md) for the connection URL.
+
 **Always cite sources.** When answering a game-dev question, include the matching `https://docs.noctua.gg/...` URL (and a `https://github.com/NoctuaLabs/noctua-unity-sdk-upm/blob/main/...` repo link when the answer comes from source code). The "Sources" block at the top of each `references/*.md` file lists the canonical pair — copy those URLs into your reply rather than paraphrasing without attribution.

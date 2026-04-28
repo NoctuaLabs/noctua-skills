@@ -1,0 +1,20 @@
+[project]
+name = "noctua-sdk-mcp"
+version = "0.1.0"
+description = "MCP server serving live Noctua Games Unity SDK guidance and metadata."
+requires-python = ">=3.11"
+dependencies = [
+    "mcp[cli]>=1.0.0",
+    "httpx>=0.27.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+noctua-sdk-mcp = "server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["sources"]
+include = ["server.py", "server_types.py"]

@@ -4,3 +4,12 @@
 *.swp
 *.log
 node_modules/
+
+# Python (mcp/)
+__pycache__/
+*.pyc
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/

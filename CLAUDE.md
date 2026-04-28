@@ -11,11 +11,27 @@ Project-level guidance for Claude Code (and any agent that reads `CLAUDE.md`) wh
 ├── LICENSE                           # MIT
 ├── commands/
 │   └── noctua-unity-sdk.md           # Claude Code slash command (/noctua-unity-sdk)
-└── skills/
-    └── noctua-unity-sdk/
-        ├── SKILL.md                  # Skill manifest (frontmatter + quickstart + routing table)
-        └── references/               # 19 topic-scoped reference files loaded on demand
+├── skills/
+│   └── noctua-unity-sdk/
+│       ├── SKILL.md                  # Skill manifest (frontmatter + quickstart + routing table)
+│       └── references/               # 22 topic-scoped reference files loaded on demand
+└── mcp/                              # noctua-sdk-mcp — live MCP server (Python + FastMCP)
+    ├── server.py                     # FastMCP entrypoint, auto-registers tools
+    ├── server_types.py               # SkillRef / ApiModule / DtoFile dataclasses
+    ├── sources/                      # upstream fetcher + per-domain tool implementations
+    ├── pyproject.toml · Dockerfile · railway.toml
+    └── README.md                     # connect / self-host / deploy instructions
 ```
+
+## MCP server (`mcp/`)
+
+The MCP server in [`mcp/`](mcp/) serves the same skill content **and** live SDK metadata over HTTP so game devs never have to re-install on each release. Tools fall into three groups:
+
+1. **Skill content** — one `get_<topic>` tool per `skills/noctua-unity-sdk/references/*.md`, fetched live from this repo's `main` branch.
+2. **SDK metadata** — `get_sdk_version`, `get_changelog`, `get_native_dependencies`, `get_skadnetwork_ids` (parsed from `noctua-unity-sdk-upm`).
+3. **C#-parsed API surface** — `list_api_modules`, `get_api_reference(module)`, `get_noctuagg_schema`, `get_error_codes` (regex over the upstream C#; these are canonical and never drift).
+
+When a new `references/<topic>.md` lands, append a row to `SKILL_REFS` in [`mcp/sources/skill_refs.py`](mcp/sources/skill_refs.py) and the tool auto-registers on the next restart. When the upstream SDK adds a new facade module, add an entry to `API_MODULES` in [`mcp/sources/api_surface.py`](mcp/sources/api_surface.py). When Noctua restructures DTO file paths, update `NOCTUAGG_DTOS` in the same file.
 
 ## What this skill is
 

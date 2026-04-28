@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "noctua-sdk": {
+      "command": "python",
+      "args": ["server.py", "stdio"],
+      "env": {}
+    }
+  }
+}

@@ -1,12 +1,13 @@
 # Noctua Skills
 
-AI-agent skills for integrating Noctua Games SDKs. Currently ships one skill:
+AI-agent skills for integrating Noctua Games SDKs. Two ways to consume:
 
-| Skill | Scope | Version targeted |
+| Surface | Scope | Version targeted |
 |---|---|---|
-| [`noctua-unity-sdk`](skills/noctua-unity-sdk/SKILL.md) | Noctua Unity SDK integration — install, `noctuagg.json`, Auth, IAP, Events, IAA + canonical ad-event schema, Firebase / Adjust attribution / push notifications, experiments & CPM floors, Android + iOS build post-processing, Noctua Inspector | SDK 0.109.0 / Unity 2022.3.62f2+ |
+| [`noctua-unity-sdk`](skills/noctua-unity-sdk/SKILL.md) (skill) | Noctua Unity SDK integration — install, `noctuagg.json`, Auth, IAP, Events, IAA + canonical ad-event schema, Firebase / Adjust attribution / push notifications, experiments & CPM floors, Android + iOS build post-processing, Noctua Inspector | SDK 0.109.0 / Unity 2022.3.62f2+ |
+| [`noctua-sdk-mcp`](mcp/README.md) (MCP server) | Same content but **served live**: every reference, the latest SDK version, changelog, native dep versions, SKAdNetwork list, and a C#-parsed API surface (`get_api_reference`, `get_noctuagg_schema`, `get_error_codes`) | Tracks `main` of the upstream SDK and this skill repo |
 
-The content is plain markdown with Claude-compatible YAML frontmatter, so it works in Claude Code, Claude.ai, the Claude Agent SDK, **and** other AI agents (Cursor, Codex CLI, Aider, Copilot) via the root [`AGENTS.md`](AGENTS.md) entry point.
+The skill is plain markdown with Claude-compatible YAML frontmatter — works in Claude Code, Claude.ai, the Claude Agent SDK, and other AI agents (Cursor, Codex CLI, Aider, Copilot) via the root [`AGENTS.md`](AGENTS.md) entry point. The MCP exposes the same content over a single HTTP URL so game devs never have to manually re-install on each SDK release.
 
 ## Install
 
@@ -64,6 +65,34 @@ cp .noctua-skills/AGENTS.md ./AGENTS.md
 ```
 
 Or point at this repo as a source and let the tool load `AGENTS.md` directly.
+
+### Live MCP server (no manual updates ever)
+
+Skip the symlink/submodule dance entirely — run the MCP once on a LAN host, point every teammate's Claude Code at the SSE URL, and your agent always sees the latest content + live SDK metadata.
+
+On one machine on the LAN (e.g. `172.16.8.237`):
+
+```sh
+cd noctua-skills/mcp
+python -m venv .venv && source .venv/bin/activate
+pip install -e .
+python server.py sse        # 0.0.0.0:8000, endpoint /sse
+```
+
+In each teammate's Claude Code config:
+
+```jsonc
+{
+  "mcpServers": {
+    "noctua-sdk": {
+      "type": "sse",
+      "url": "http://172.16.8.237:8000/sse"
+    }
+  }
+}
+```
+
+Tools include `get_sdk_version`, `get_changelog`, `get_api_reference(module)`, `get_noctuagg_schema`, `get_error_codes`, plus one `get_<topic>` per skill reference (call `list_topics` to discover them). Full self-hosting + Docker instructions in [`mcp/README.md`](mcp/README.md).
 
 ### Any other agent
 
